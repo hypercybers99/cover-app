@@ -67,8 +67,29 @@ copyWithHeader('scripts/deploy/deployments.json', 'deployments_source.json');
 
 // 4. Generate a consolidated evidence summary module src/data/evidenceSummary.ts
 const liveRaw = JSON.parse(fs.readFileSync(path.join(outDir, 'live_evidence.json'), 'utf8')).data;
+const iter0Raw = JSON.parse(fs.readFileSync(path.join(outDir, 'robustness_iter0.json'), 'utf8')).data;
 const iter1Raw = JSON.parse(fs.readFileSync(path.join(outDir, 'robustness_iter1.json'), 'utf8')).data;
 const iter2Raw = JSON.parse(fs.readFileSync(path.join(outDir, 'robustness_iter2.json'), 'utf8')).data;
+
+// Map filenames to short page codes: s1, s2, s3, s4, s5, s7
+function formatSummaryMap(summary) {
+  const map = {};
+  for (const [key, val] of Object.entries(summary || {})) {
+    const match = key.match(/status-(s\d)/);
+    const shortKey = match ? match[1] : key;
+    map[shortKey] = {
+      total: val.total_runs ?? val.total ?? 0,
+      parsed: val.parse_successes ?? val.parsed ?? 0,
+      matches: val.outcome_matches ?? val.matches ?? 0,
+      pass: val.pass_rule_met ?? val.pass ?? false,
+    };
+  }
+  return map;
+}
+
+const normIter0 = formatSummaryMap(iter0Raw.summary);
+const normIter1 = formatSummaryMap(iter1Raw.summary);
+const normIter2 = iter2Raw.batches || {};
 
 console.log('Generating evidenceSummary.ts...');
 const summaryCode = `// Generated automatically by scripts/sync_evidence.mjs
@@ -124,11 +145,15 @@ export const BALANCE_SNAPSHOTS: BalanceSnapshot[] = ${JSON.stringify(liveRaw.bal
 
 export const TRANSACTION_MATRIX: TransactionEvidence[] = ${JSON.stringify(liveRaw.transactions || [], null, 2)};
 
-export const ITER2_BATCHES: Record<string, RobustnessBatchResult> = ${JSON.stringify(iter2Raw.batches || {}, null, 2)};
+export const ROBUSTNESS_ITER0: Record<string, RobustnessBatchResult> = ${JSON.stringify(normIter0, null, 2)};
+export const ROBUSTNESS_ITER1: Record<string, RobustnessBatchResult> = ${JSON.stringify(normIter1, null, 2)};
+export const ROBUSTNESS_ITER2: Record<string, RobustnessBatchResult> = ${JSON.stringify(normIter2, null, 2)};
+export const ITER2_BATCHES: Record<string, RobustnessBatchResult> = ROBUSTNESS_ITER2;
 
 export const FINAL_STATS = ${JSON.stringify(liveRaw.readbacks.stats || {}, null, 2)};
 export const FINAL_POOL_HEALTH = ${JSON.stringify(liveRaw.readbacks.pool_health_final || {}, null, 2)};
 `;
+
 
 fs.writeFileSync(path.join(outDir, 'evidenceSummary.ts'), summaryCode, 'utf8');
 console.log('Wrote src/data/evidenceSummary.ts');

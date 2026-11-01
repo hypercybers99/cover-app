@@ -42,7 +42,7 @@ export const EVIDENCE_META: MetaHeader = {
   source_tag: 'cover-v1-final',
   source_commit: 'de8ca897d2c0ad449facba25739f631292209e65',
   source_path: 'docs/evidence/live_evidence.json',
-  synced_at: '2026-11-01T03:50:17.379Z',
+  synced_at: '2026-11-01T04:05:53.403Z',
 };
 
 export const PROMPT_SHA256 = '90be3b95dd867b8cc3a04f9464e3a1ab3b499343d3c4a40664042651092ecca1';
@@ -626,7 +626,83 @@ export const TRANSACTION_MATRIX: TransactionEvidence[] = [
   }
 ];
 
-export const ITER2_BATCHES: Record<string, RobustnessBatchResult> = {
+export const ROBUSTNESS_ITER0: Record<string, RobustnessBatchResult> = {
+  "s1": {
+    "total": 10,
+    "parsed": 10,
+    "matches": 9,
+    "pass": true
+  },
+  "s2": {
+    "total": 10,
+    "parsed": 10,
+    "matches": 10,
+    "pass": true
+  },
+  "s3": {
+    "total": 10,
+    "parsed": 10,
+    "matches": 9,
+    "pass": true
+  },
+  "s4": {
+    "total": 10,
+    "parsed": 10,
+    "matches": 7,
+    "pass": false
+  },
+  "s5": {
+    "total": 10,
+    "parsed": 10,
+    "matches": 10,
+    "pass": true
+  },
+  "s7": {
+    "total": 4,
+    "parsed": 4,
+    "matches": 4,
+    "pass": false
+  }
+};
+export const ROBUSTNESS_ITER1: Record<string, RobustnessBatchResult> = {
+  "s1": {
+    "total": 10,
+    "parsed": 10,
+    "matches": 10,
+    "pass": true
+  },
+  "s2": {
+    "total": 10,
+    "parsed": 10,
+    "matches": 10,
+    "pass": true
+  },
+  "s3": {
+    "total": 10,
+    "parsed": 9,
+    "matches": 9,
+    "pass": false
+  },
+  "s4": {
+    "total": 10,
+    "parsed": 10,
+    "matches": 10,
+    "pass": true
+  },
+  "s5": {
+    "total": 10,
+    "parsed": 10,
+    "matches": 10,
+    "pass": true
+  },
+  "s7": {
+    "total": 10,
+    "parsed": 10,
+    "matches": 10,
+    "pass": true
+  }
+};
+export const ROBUSTNESS_ITER2: Record<string, RobustnessBatchResult> = {
   "s1": {
     "total": 10,
     "parsed": 10,
@@ -670,6 +746,7 @@ export const ITER2_BATCHES: Record<string, RobustnessBatchResult> = {
     "pass": true
   }
 };
+export const ITER2_BATCHES: Record<string, RobustnessBatchResult> = ROBUSTNESS_ITER2;
 
 export const FINAL_STATS = {
   "next_policy": "5",
