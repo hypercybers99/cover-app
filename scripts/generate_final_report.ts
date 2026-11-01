@@ -34,13 +34,13 @@ let deployRun = '';
 try {
   ciRun = execFileSync(
     'gh',
-    ['api', 'repos/hypercybers99/cover-app/actions/runs/41285669523', '--jq', '{id,head_sha,status,conclusion,html_url}'],
+    ['api', 'repos/hypercybers99/cover-app/actions/runs/41286073333', '--jq', '{id,head_sha,status,conclusion,html_url}'],
     { cwd: rootDir, encoding: 'utf8' }
   ).trim();
-  ciJobs = execFileSync('gh', ['run', 'view', '--job=124786343733'], { cwd: rootDir, encoding: 'utf8' }).trim();
+  ciJobs = execFileSync('gh', ['run', 'view', '--job=124787519147'], { cwd: rootDir, encoding: 'utf8' }).trim();
   deployRun = execFileSync(
     'gh',
-    ['api', 'repos/hypercybers99/cover-app/actions/runs/41285669480', '--jq', '{id,head_sha,status,conclusion,html_url}'],
+    ['api', 'repos/hypercybers99/cover-app/actions/runs/41286073343', '--jq', '{id,head_sha,status,conclusion,html_url}'],
     { cwd: rootDir, encoding: 'utf8' }
   ).trim();
 } catch (e) {
@@ -225,7 +225,7 @@ ${deepLinkRows}
 ## 9. GitHub Actions CI & Deployment Verification
 
 ### CI Run Proof (Build, Lint, Test, Scan & Browser Audit)
-- Run ID: 41285669523
+- Run ID: 41286073333
 - Status: Completed (Success)
 - Run Details:
 
@@ -234,7 +234,7 @@ ${ciRun}
 \`\`\`
 
 ### GitHub Pages Deployment Run Proof
-- Run ID: 41285669480
+- Run ID: 41286073343
 - Status: Completed (Success)
 - Deployed Site: https://hypercybers99.github.io/cover-app/
 - Run Details:
