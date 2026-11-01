@@ -3,7 +3,7 @@
 Parametric web-service cover on GenLayer studionet (demo credits).
 
 - **Contract and Evidence Repository**: [https://github.com/hypercybers99/cover-genlayer](https://github.com/hypercybers99/cover-genlayer/tree/cover-v1-final) (tag `cover-v1-final`)
-- **Deployed App URL**: not deployed yet (ready for owner deployment via Vercel)
+- **Deployed App URL**: [https://hypercybers99.github.io/cover-app/](https://hypercybers99.github.io/cover-app/)
 - **Cover Contract Explorer**: [0x4d12d00d527869a6a6f95358A11589ecf3C347e3](https://explorer-studio.genlayer.com/address/0x4d12d00d527869a6a6f95358A11589ecf3C347e3)
 - **CoverGuard Contract Explorer**: [0x6Ad8554F4Ca7eA3681c6a06b822B0d5c59993724](https://explorer-studio.genlayer.com/address/0x6Ad8554F4Ca7eA3681c6a06b822B0d5c59993724)
 
