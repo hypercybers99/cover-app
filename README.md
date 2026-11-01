@@ -1,8 +1,11 @@
-# Cover - Decentralized Parametric Web Service Protection
+# Cover - web app (Preview)
 
-Cover is a decentralized parametric coverage protocol for web infrastructure and APIs powered by GenLayer intelligent contracts evaluated by multi-validator consensus.
+Parametric web-service cover on GenLayer studionet (demo credits).
 
-**Status**: Preview | **Network**: GenLayer Studionet (Chain ID `61999`, RPC `https://studio.genlayer.com/api`)
+- **Contract and Evidence Repository**: [https://github.com/hypercybers99/cover-genlayer](https://github.com/hypercybers99/cover-genlayer/tree/cover-v1-final) (tag `cover-v1-final`)
+- **Deployed App URL**: not deployed yet (ready for owner deployment via Vercel)
+- **Cover Contract Explorer**: [0x4d12d00d527869a6a6f95358A11589ecf3C347e3](https://explorer-studio.genlayer.com/address/0x4d12d00d527869a6a6f95358A11589ecf3C347e3)
+- **CoverGuard Contract Explorer**: [0x6Ad8554F4Ca7eA3681c6a06b822B0d5c59993724](https://explorer-studio.genlayer.com/address/0x6Ad8554F4Ca7eA3681c6a06b822B0d5c59993724)
 
 > [!NOTE]
 > Credits are demo credits on GenLayer studionet, not money. Cover is an experimental preview application.
@@ -82,7 +85,7 @@ npx playwright test
 # 4. Run automated browser visual & accessibility audit (32 screenshots)
 node scripts/run_browser_checks.mjs
 
-# 5. Run live studionet E2E validation with throwaway key
+# 5. Run studionet on-chain E2E validation with throwaway key
 npx tsx scripts/e2e_studionet_check.ts
 ```
 
@@ -167,20 +170,42 @@ cover-app/
 
 ## Error Remediation Reference
 
-Every `gl.vm.UserError` raised by the contracts maps to a clear user explanation and suggested action in the UI:
+Every `gl.vm.UserError` raised by the contracts (54 raise statements: 52 in `Cover.py` across 30 unique templates, 2 in `CoverGuard.py`) maps to a clear user explanation and suggested action in the UI:
 
-| Contract Error Prefix | User Explanation | Suggested Remediation |
-| :--- | :--- | :--- |
-| `bad URL: scheme must be https` | The source URL does not use the secure HTTPS protocol. | Use an https:// URL; plain http:// is rejected by the contract. |
-| `bad URL: IP literals not allowed` | The source URL uses a raw IPv4 or IPv6 numerical address. | Use a public DNS hostname instead of an IP literal. |
-| `bad name` | Product name must be 3 to 60 ASCII characters. | Provide a standard ASCII product name between 3 and 60 characters. |
-| `bad rule text` | Incident rule text must be between 10 and 200 characters. | Provide a concise incident rule description between 10 and 200 characters. |
-| `bad thresholds` | Thresholds must be integer minutes where 100% threshold > 50% threshold >= 1. | Ensure 100% threshold is greater than 50% threshold. |
-| `insufficient unreserved pool balance` | The pool does not have enough unreserved liquidity to back this coverage. | Choose a smaller coverage amount or wait for an underwriter to fund the pool. |
-| `insufficient balance` | Your connected wallet does not hold enough demo credits for this deposit or premium. | Claim 1,000 demo credits from the faucet at `/credits`. |
-| `not active` | The requested policy has already settled or was cancelled. | Choose an active policy. |
-| `not expired` | Policy is still within its active temporal term and cannot be settled as expired. | Wait until the policy expiration timestamp or settle when an active outage occurs. |
-| `not creator` | This management action is restricted to the original pool creator. | Switch to the creator wallet address in MetaMask. |
+| Contract Error String / Prefix | Contract | User-Facing Explanation | Suggested Remediation |
+| :--- | :--- | :--- | :--- |
+| `already claimed demo credits` | Cover | This wallet has already claimed its one-time allotment of 1,000 demo credits. | Use existing demo credits in this wallet, or switch to a new wallet address. |
+| `bad amount` | Cover | The specified credit amount is invalid (must be a positive integer within bounds). | Enter an integer greater than zero within allowed product bounds. |
+| `bad name` | Cover | The product name must be pure ASCII between 3 and 60 characters. | Enter a descriptive ASCII product name between 3 and 60 characters. |
+| `bad premium rate` | Cover | The premium rate must be between 100 bps (1%) and 5,000 bps (50%). | Set a premium rate between 100 bps (1%) and 5,000 bps (50%). |
+| `bad rule text` | Cover | The rule description text must be pure ASCII between 10 and 200 characters. | Provide clear ASCII rule text between 10 and 200 characters. |
+| `bad thresholds` | Cover | Outage thresholds are invalid: min_full must be 2-10080 min, and min_half must be 1 to (min_full - 1). | Adjust thresholds so min_half is strictly less than min_full. |
+| `bad URL: fragment not allowed` | Cover | The source URL contains a hash fragment identifier (#section). | Remove the # anchor fragment from the URL. |
+| `bad URL: IP literals not allowed` | Cover | The source URL uses a raw IPv4 or IPv6 numerical address. | Use a public DNS hostname instead of an IP literal. |
+| `bad URL: length must be between 1 and 300 characters` | Cover | The provided source URL is either empty or longer than 300 characters. | Shorten the URL or use a direct HTTPS endpoint under 300 characters. |
+| `bad URL: missing host` | Cover | The source URL has no hostname or domain specified. | Specify a fully qualified domain name (e.g. status.company.com). |
+| `bad URL: must be pure ASCII` | Cover | The source URL contains international, Unicode, or non-ASCII characters. | Convert any non-ASCII domain characters to Punycode or standard ASCII. |
+| `bad URL: port must be 443 or omitted` | Cover | The source URL specifies a custom port number other than 443. | Omit the port number or specify standard port 443. |
+| `bad URL: scheme must be https` | Cover | The source URL does not use the secure HTTPS protocol. | Use an https:// URL; plain http:// is rejected by the contract. |
+| `bad URL: userinfo not allowed` | Cover | The source URL contains embedded credentials (e.g., user:pass@host). | Remove user credentials from the URL. |
+| `duplicate observation: {id}` | Cover | This policy was already settled against identical page content in a prior observation. | Wait until the status page updates with new incident information before settling again. |
+| `event already in progress or status unclear at purchase` | Cover | Purchase refused: the target service is currently reporting an outage or degraded performance. | Cover can only be purchased while the monitored service is fully OPERATIONAL. |
+| `host or directory mismatch on update_source` | Cover | The updated source URL must share the exact same host and directory path as the original product terms. | Keep the exact domain and folder path identical; only filename or query updates are permitted. |
+| `HTTP status not 200: {code}` | Cover | The status page web server returned an HTTP error code instead of HTTP 200 OK. | Ensure the target page URL exists and is publicly accessible without authentication. |
+| `insufficient balance` | Cover | Your wallet balance has fewer demo credits than the requested operation requires. | Claim demo credits on the Credits page or reduce the amount. |
+| `not creator` | Cover | Only the underwriter address that created this product can withdraw or update its source. | Switch wallet to the product creator account. |
+| `not holder` | Cover | Only the policy holder address can cancel this policy. | Connect the wallet that purchased the policy. |
+| `page too large` | Cover | The status page content exceeded the maximum contract size limit of 400,000 bytes. | Point to a lightweight status page or markdown feed under 400 KB. |
+| `page unreadable` | Cover | Cleaned text extracted from the status page was under 200 characters, indicating incomplete content or client-side rendering. | Ensure the page returns static HTML or markdown without client-side JavaScript rendering. |
+| `policy not active` | Cover | This policy cannot be settled or cancelled because it is no longer ACTIVE (already PAID or CANCELLED). | View the settlement record or purchase a new policy. |
+| `pool cannot cover this coverage` | Cover | The product pool lacks sufficient free capital to cover this policy at this time. | Request the underwriter fund more credits, or purchase a smaller coverage amount. |
+| `source unreachable` | Cover | Validators could not fetch the status page URL (DNS, connection, or timeout failure). | Verify the public status page is reachable and try again. |
+| `unknown policy` | Cover | The specified policy ID does not exist on-chain. | Check the policy ID in your active policies list. |
+| `unknown product` | Cover | The specified product ID does not exist in the contract registry. | Verify the product ID or browse active products from the directory. |
+| `unknown settlement` | Cover | The specified settlement observation ID does not exist. | Verify the settlement ID on the policy page. |
+| `withdraw exceeds unreserved` | Cover | The requested withdrawal exceeds free unreserved credits in the product pool. | Check pool health and withdraw an amount less than or equal to unreserved pool balance. |
+| `not covered: {reason}` | CoverGuard | CoverGuard verification failed: policy is not actively covered (e.g. PAID, CANCELLED, POOL_SHORT). | Check policy status, holder address, and product pool balance. |
+| `unknown attestation` | CoverGuard | The specified attestation ID does not exist in CoverGuard. | Verify the attestation ID on the CoverGuard inspector page. |
 
 ---
 
