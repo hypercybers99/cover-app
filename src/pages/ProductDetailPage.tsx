@@ -74,7 +74,7 @@ export const ProductDetailPage: React.FC = () => {
     loadData();
   }, [productId]);
 
-  // Live Premium Calculation
+  // Real-time Premium Calculation
   useEffect(() => {
     let active = true;
     if (!product || isNaN(productId) || buyCoverage <= 0 || buyDays <= 0) {

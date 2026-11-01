@@ -17,6 +17,7 @@ const bannedWords = [
   'autonomous',
   'revolutionary',
   'bytecode',
+  'Live',
 ];
 
 function collectFiles(dir) {
@@ -43,20 +44,28 @@ for (const file of files) {
   const lines = content.split('\n');
 
   lines.forEach((lineText, idx) => {
-    if (lineText.includes('bannedWords') || lineText.includes("'bytecode'") || lineText.includes('"bytecode"')) return;
+    if (lineText.includes('bannedWords') || lineText.includes("'bytecode'") || lineText.includes('"bytecode"') || lineText.includes("'Live'") || lineText.includes('"Live"')) return;
     for (const w of bannedWords) {
-      const regex = new RegExp(`\\b${w}\\b`, 'i');
-      if (regex.test(lineText)) {
-        console.error(`BANNED WORD: "${w}" in ${path.relative(rootDir, file)}:${idx + 1}`);
-        violations++;
+      if (w === 'Live') {
+        // Case-sensitive "Live" as a descriptor or "live" in user-facing text
+        if (/\bLive\b/.test(lineText) && !lineText.includes('live_evidence')) {
+          console.error(`BANNED WORD: "Live" in ${path.relative(rootDir, file)}:${idx + 1}`);
+          violations++;
+        } else if (/\blive\b/.test(lineText) && !lineText.includes('live_evidence') && !lineText.trim().startsWith('//') && !lineText.trim().startsWith('*')) {
+          console.error(`BANNED WORD: "live" in user-facing text in ${path.relative(rootDir, file)}:${idx + 1}`);
+          violations++;
+        }
+      } else {
+        const regex = new RegExp(`\\b${w}\\b`, 'i');
+        if (regex.test(lineText)) {
+          console.error(`BANNED WORD: "${w}" in ${path.relative(rootDir, file)}:${idx + 1}`);
+          violations++;
+        }
       }
-    }
-    if (/live protection|live contract|live network|live data|live blockchain/i.test(lineText)) {
-      console.error(`BANNED WORD: "Live" used as descriptor in ${path.relative(rootDir, file)}:${idx + 1}`);
-      violations++;
     }
   });
 }
+
 
 if (violations > 0) {
   console.error(`Scan failed: ${violations} banned word occurrences found!`);

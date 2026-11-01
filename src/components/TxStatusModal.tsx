@@ -126,7 +126,7 @@ export const TxStatusModal: React.FC<TxStatusModalProps> = ({
           )}
         </div>
 
-        {/* Live Timer */}
+        {/* Elapsed Timer */}
         <div className="flex items-center justify-between text-sm px-1">
           <span className="text-ink-muted">Elapsed Time:</span>
           <span className="font-mono font-semibold text-ink">{elapsedSeconds}s</span>

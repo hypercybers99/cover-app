@@ -41,7 +41,7 @@ export const EvidencePage: React.FC = () => {
           <h1 className="text-3xl font-extrabold text-ink">Contract Verification & Evidence</h1>
         </div>
         <p className="text-ink-muted">
-          Complete transparent audit trail of deployments, invariant balance snapshots, live transaction executions, and multi-validator robustness iterations on GenLayer studionet.
+          Complete transparent audit trail of deployments, invariant balance snapshots, transaction executions, and multi-validator robustness iterations on GenLayer studionet.
         </p>
       </div>
 
@@ -219,13 +219,13 @@ export const EvidencePage: React.FC = () => {
         </div>
       </div>
 
-      {/* 39-Step Live Transaction Matrix */}
+      {/* 39-Step Transaction Matrix */}
       <div className="p-4 sm:p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4 max-w-full overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-ink">39-Step Live Transaction Matrix</h2>
+            <h2 className="text-xl font-bold text-ink">39-Step Transaction Matrix</h2>
             <p className="text-xs text-ink-muted">
-              Live recorded executions against GenLayer studionet (success and expected revert paths).
+              Recorded executions against GenLayer studionet (success and expected revert paths).
             </p>
           </div>
           <div className="flex items-center gap-2">

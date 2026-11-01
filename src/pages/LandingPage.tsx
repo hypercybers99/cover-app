@@ -44,7 +44,7 @@ export const LandingPage: React.FC = () => {
         </h1>
 
         <p className="text-lg sm:text-xl text-ink-muted leading-relaxed max-w-2xl">
-          Decentralized cover for critical cloud infrastructure and APIs. Consensus validators inspect live web status pages to settle payouts without centralized oracles or subjective human arbiters.
+          Decentralized cover for critical cloud infrastructure and APIs. Consensus validators inspect web status pages to settle payouts without centralized oracles or subjective human arbiters.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
@@ -74,7 +74,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Live System Metric Snapshot */}
+      {/* System Metric Snapshot */}
       <section className="max-w-5xl mx-auto w-full px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded-lg bg-sand border border-sand-border">
           <div className="flex flex-col gap-1">
@@ -146,7 +146,7 @@ export const LandingPage: React.FC = () => {
             </div>
             <h3 className="text-xl font-bold text-ink">Consensus Settlement</h3>
             <p className="text-ink-muted text-base leading-relaxed">
-              When an outage occurs, anyone can trigger settlement. GenLayer validators inspect live web data, apply strict equivalence principles, and release payouts immediately.
+              When an outage occurs, anyone can trigger settlement. GenLayer validators inspect web data, apply strict equivalence principles, and release payouts immediately.
             </p>
           </div>
         </div>

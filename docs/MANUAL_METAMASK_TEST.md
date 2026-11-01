@@ -46,7 +46,7 @@ Add the GenLayer Studionet network to MetaMask if not already configured:
 - **Action**: Navigate to `/credits` and click **Claim 1,000 Demo Credits**.
 - **Expected Result**: 
   - MetaMask prompts to confirm the zero-value transaction calling `claim_demo_credits()`.
-  - The in-app transaction modal opens with a live running timer.
+  - The in-app transaction modal opens with an elapsed running timer.
   - Upon consensus confirmation, modal displays **Transaction Succeeded** and balance increments from `0 CR` to `1,000 CR`.
 - **Status**: **not run by the agent** via browser extension (verified programmatically via on-chain test script `scripts/e2e_studionet_check.ts`, tx `0x0b91309a69c1cfd7ee83af8edc99514ce10b5b46d4cb4ff7497a74dadaee8acf`).
 
@@ -86,7 +86,7 @@ Add the GenLayer Studionet network to MetaMask if not already configured:
 
 ### 8. Policy Settlement or Cancellation
 - **Action**: Navigate to `/policies/1`.
-  - For claim evaluation: Click **Trigger Settlement** to execute consensus check against live web endpoint.
+  - For claim evaluation: Click **Trigger Settlement** to execute consensus check against web endpoint.
   - For voluntary termination: Click **Cancel Policy** to receive pro-rated unspent premium refund.
 - **Expected Result**: TxStatusModal displays execution progress. When settled, `OutcomeStamp` (`PAY_100`, `PAY_50`, `PAY_25`, `NO_PAY`, or `REVIEW`) and `GateChip` (`JUDGED`, `TRIPWIRE`, or `PAGE_UNCHANGED`) render with detailed meanings.
 - **Status**: **not run by the agent** via browser extension.

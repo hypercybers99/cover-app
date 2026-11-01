@@ -32,6 +32,7 @@ describe('Project Static Scans and Constraints', () => {
       'autonomous',
       'revolutionary',
       'bytecode',
+      'Live',
     ];
 
     const files = collectFiles(rootDir, ['.ts', '.tsx', '.js', '.mjs', '.md', '.html']);

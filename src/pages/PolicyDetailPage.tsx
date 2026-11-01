@@ -244,7 +244,7 @@ export const PolicyDetailPage: React.FC = () => {
           <div className="flex flex-col gap-1">
             <h4 className="font-bold text-ink">Execute Claim or Termination</h4>
             <p className="text-xs text-ink-muted">
-              Consensus settlement evaluates live web status. Cancellation refunds unspent term.
+              Consensus settlement evaluates web status. Cancellation refunds unspent term.
             </p>
           </div>
 
