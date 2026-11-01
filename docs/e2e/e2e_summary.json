@@ -1,0 +1,119 @@
+{
+  "total_steps_executed": 9,
+  "total_files_recorded": 10,
+  "attempts": 10,
+  "successes": 10,
+  "failures": 0,
+  "steps": [
+    {
+      "file": "step1_claim_credits.json",
+      "step": "1_claim_credits",
+      "function": "claim_demo_credits",
+      "tx_hash": "0xdc02877b869e3f9fd5384205c30a933bb0a3d1504ab421ad8e1e3cd2574966e8",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 8.69
+    },
+    {
+      "file": "step2_create_product.json",
+      "step": "2_create_product",
+      "function": "create_product",
+      "tx_hash": "0x1910f442d04b746b18a89b2d6f20c919a49769b515c24459f50d04bc3e0afdc2",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 8.61
+    },
+    {
+      "file": "step3_fund_product.json",
+      "step": "3_fund_product",
+      "function": "fund_product",
+      "tx_hash": "0x1b197eecbf3faa8905948dc594bde97b74e7de957f2a90f1178a4b540d340a3a",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 5.44
+    },
+    {
+      "file": "step4_quote_vs_charged.json",
+      "step": "4_quote_premium",
+      "function": "read/check",
+      "tx_hash": "N/A",
+      "status_name": "N/A",
+      "result_name": "N/A",
+      "leader_result": "N/A",
+      "classification": "SUCCESS",
+      "elapsed_seconds": "N/A"
+    },
+    {
+      "file": "step5_buy_cover.json",
+      "step": "5_buy_cover",
+      "function": "buy",
+      "tx_hash": "0x40e8f1e15fb5161f63a67875163a6748ddc692bb276ab8a27dfc67237fa85fc2",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 15.34
+    },
+    {
+      "file": "step6_settle_attempt1.json",
+      "step": 1,
+      "function": "read/check",
+      "tx_hash": "0xffdfb56133ef17db11712224a94c48eac3c8d87100a4564874f90b266b7ab18b",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 18.59
+    },
+    {
+      "file": "step6_settle_policy.json",
+      "step": "6_settle_policy",
+      "function": "settle",
+      "tx_hash": "0xffdfb56133ef17db11712224a94c48eac3c8d87100a4564874f90b266b7ab18b",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 18.59
+    },
+    {
+      "file": "step7_cancel_policy.json",
+      "step": "7_cancel_policy",
+      "function": "cancel",
+      "tx_hash": "0xbc4742a69a1a2ac3ac2dd9d2a35cb8fd6623327f3e3f4baf9b30da2b27725302",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 12.01
+    },
+    {
+      "file": "step8_withdraw.json",
+      "step": "8_withdraw_unreserved",
+      "function": "withdraw_unreserved",
+      "tx_hash": "0xa4d33aca2e5b519a59b3aed87f8c38518b744547ce9de5348c9d11869727bc01",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 8.61
+    },
+    {
+      "file": "step9_coverguard.json",
+      "step": "9_coverguard",
+      "function": "read/check",
+      "tx_hash": "0x8443c18b9185cf0c2d456028bcd0a5d5bd454e949126e3495ebf35b6d09fdd8c",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 8.55
+    }
+  ]
+}

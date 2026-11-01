@@ -1,0 +1,33 @@
+{
+  "step": "2_create_product",
+  "caller": "0xD81f343599C5439748e32ec28128E8f9E2B1d8cF",
+  "function": "create_product",
+  "tx_hash": "0x1910f442d04b746b18a89b2d6f20c919a49769b515c24459f50d04bc3e0afdc2",
+  "status_name": "ACCEPTED",
+  "result_name": "MAJORITY_AGREE",
+  "leader_result": "SUCCESS",
+  "classification": "SUCCESS",
+  "elapsed_seconds": 8.61,
+  "product_id": "2",
+  "product": {
+    "creator": "0xd81f343599c5439748e32ec28128e8f9e2b1d8cf",
+    "dir_path": "/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/",
+    "host": "raw.githubusercontent.com",
+    "id": "2",
+    "min_full": "60",
+    "min_half": "30",
+    "name": "App E2E Cloud Cover",
+    "policy_count": "0",
+    "pool_balance": "0",
+    "premium_bps": "1000",
+    "reserved": "0",
+    "rule_text": "major outage lasting at least 60 minutes",
+    "schema_version": "1",
+    "seq": "1",
+    "source_history": [
+      "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md"
+    ],
+    "terms_hash": "e55bc95b1d15b7e8e80f49aebc34d3c33efa1e751e8441e86b7a929e7149fef5",
+    "url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md"
+  }
+}

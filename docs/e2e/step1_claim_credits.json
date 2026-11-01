@@ -1,0 +1,14 @@
+{
+  "step": "1_claim_credits",
+  "caller": "0x18A35BaD91ca4D30D10D25E01026f6b2c202457A",
+  "function": "claim_demo_credits",
+  "tx_hash": "0xdc02877b869e3f9fd5384205c30a933bb0a3d1504ab421ad8e1e3cd2574966e8",
+  "status_name": "ACCEPTED",
+  "result_name": "MAJORITY_AGREE",
+  "leader_result": "SUCCESS",
+  "classification": "SUCCESS",
+  "elapsed_seconds": 8.69,
+  "balance_before": 0,
+  "balance_after": 1000,
+  "delta": 1000
+}

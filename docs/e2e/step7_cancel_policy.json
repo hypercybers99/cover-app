@@ -1,0 +1,32 @@
+{
+  "step": "7_cancel_policy",
+  "caller": "0x18A35BaD91ca4D30D10D25E01026f6b2c202457A",
+  "function": "cancel",
+  "policy_id": "6",
+  "buy_tx_hash": "0x50569ecf959f0d52e14045282e8050f1fb2887f6bc8914348b4f618c761c9f72",
+  "cancel_tx_hash": "0xbc4742a69a1a2ac3ac2dd9d2a35cb8fd6623327f3e3f4baf9b30da2b27725302",
+  "status_name": "ACCEPTED",
+  "result_name": "MAJORITY_AGREE",
+  "leader_result": "SUCCESS",
+  "classification": "SUCCESS",
+  "elapsed_seconds": 12.01,
+  "buyer_balance_before_cancel": 1085,
+  "buyer_balance_after_cancel": 1085,
+  "refund_amount": 0,
+  "pool_reserved_before": "50",
+  "pool_reserved_after": "0",
+  "reserved_released": 50,
+  "policy_snapshot": {
+    "attempts": "0",
+    "buy_norm_hash16": "4aa1659279aef945",
+    "coverage": "50",
+    "holder": "0x18a35bad91ca4d30d10d25e01026f6b2c202457a",
+    "id": "6",
+    "paid_amount": "0",
+    "premium": "5",
+    "product_id": "2",
+    "schema_version": "1",
+    "seq": "1",
+    "status": "CANCELLED"
+  }
+}

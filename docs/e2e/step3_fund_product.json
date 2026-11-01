@@ -1,0 +1,31 @@
+{
+  "step": "3_fund_product",
+  "caller": "0xD81f343599C5439748e32ec28128E8f9E2B1d8cF",
+  "function": "fund_product",
+  "tx_hash": "0x1b197eecbf3faa8905948dc594bde97b74e7de957f2a90f1178a4b540d340a3a",
+  "status_name": "ACCEPTED",
+  "result_name": "MAJORITY_AGREE",
+  "leader_result": "SUCCESS",
+  "classification": "SUCCESS",
+  "elapsed_seconds": 5.44,
+  "product_id": "2",
+  "fund_amount": 300,
+  "creator_balance_before": 1000,
+  "creator_balance_after": 700,
+  "pool_health_before": {
+    "coverage_ratio_bps": "10000",
+    "free": "0",
+    "pool_balance": "0",
+    "product_id": "2",
+    "reserved": "0",
+    "schema_version": "1"
+  },
+  "pool_health_after": {
+    "coverage_ratio_bps": "10000",
+    "free": "300",
+    "pool_balance": "300",
+    "product_id": "2",
+    "reserved": "0",
+    "schema_version": "1"
+  }
+}

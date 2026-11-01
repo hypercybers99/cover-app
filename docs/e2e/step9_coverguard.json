@@ -1,0 +1,44 @@
+{
+  "step": "9_coverguard",
+  "caller": "0x18A35BaD91ca4D30D10D25E01026f6b2c202457A",
+  "policy_1_check": {
+    "coverage": "100",
+    "covered": "false",
+    "policy_status": "PAID",
+    "product_id": "2",
+    "reason": "PAID"
+  },
+  "policy_2_check": {
+    "coverage": "50",
+    "covered": "false",
+    "policy_status": "CANCELLED",
+    "product_id": "2",
+    "reason": "CANCELLED"
+  },
+  "policy_3_id": "7",
+  "policy_3_check": {
+    "coverage": "50",
+    "covered": "true",
+    "policy_status": "ACTIVE",
+    "product_id": "2",
+    "reason": "OK"
+  },
+  "is_covered_for_50": true,
+  "is_covered_for_100": false,
+  "attest_tx_hash": "0x8443c18b9185cf0c2d456028bcd0a5d5bd454e949126e3495ebf35b6d09fdd8c",
+  "status_name": "ACCEPTED",
+  "result_name": "MAJORITY_AGREE",
+  "leader_result": "SUCCESS",
+  "classification": "SUCCESS",
+  "elapsed_seconds": 8.55,
+  "attestations_count": 1,
+  "latest_attestation": {
+    "attester": "0x18a35bad91ca4d30d10d25e01026f6b2c202457a",
+    "coverage": "50",
+    "id": "2",
+    "policy_id": "7",
+    "product_id": "2",
+    "schema_version": "1",
+    "terms_hash": "e55bc95b1d15b7e8e80f49aebc34d3c33efa1e751e8441e86b7a929e7149fef5"
+  }
+}

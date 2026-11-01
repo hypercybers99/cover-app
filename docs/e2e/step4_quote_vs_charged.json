@@ -1,0 +1,8 @@
+{
+  "step": "4_quote_premium",
+  "coverage": 100,
+  "premium_bps": 1000,
+  "quoted_premium": 10,
+  "formula_expected": 10,
+  "match": true
+}
