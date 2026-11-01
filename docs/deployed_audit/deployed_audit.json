@@ -1,0 +1,43 @@
+{
+  "deployed_url": "https://hypercybers99.github.io/cover-app",
+  "timestamp": "2026-11-01T07:43:59.107Z",
+  "console_errors_count": 0,
+  "console_errors": [],
+  "typography_base_font_size": "18px",
+  "typography_ge_18px": true,
+  "axe_light_violations": 0,
+  "axe_dark_violations": 0,
+  "mobile_360px_overflow": false,
+  "mobile_360px_scroll_width": 360,
+  "mobile_360px_client_width": 360,
+  "zero_wallet_chain_read_success": true,
+  "deep_links": [
+    {
+      "name": "Product Detail #2",
+      "url": "https://hypercybers99.github.io/cover-app/products/2",
+      "http_status_served": 404,
+      "client_rendered_page": true,
+      "page_title": "Cover - Parametric Protection (Preview)",
+      "expected_text_found": true,
+      "screenshot": "deeplink_products_2.png"
+    },
+    {
+      "name": "Policy Detail #5",
+      "url": "https://hypercybers99.github.io/cover-app/policies/5",
+      "http_status_served": 404,
+      "client_rendered_page": true,
+      "page_title": "Cover - Parametric Protection (Preview)",
+      "expected_text_found": true,
+      "screenshot": "deeplink_policies_5.png"
+    },
+    {
+      "name": "CoverGuard Gateway",
+      "url": "https://hypercybers99.github.io/cover-app/guard",
+      "http_status_served": 404,
+      "client_rendered_page": true,
+      "page_title": "Cover - Parametric Protection (Preview)",
+      "expected_text_found": true,
+      "screenshot": "deeplink_guard.png"
+    }
+  ]
+}

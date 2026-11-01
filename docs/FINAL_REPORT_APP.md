@@ -1,11 +1,12 @@
 # FINAL_REPORT_APP: Cover Web Application
 
 - Repository: https://github.com/hypercybers99/cover-app
-- Head Commit: 926ad5bea09d7196aaf3a786b29f5b651d71a624
-- Release Tag: cover-app-v1b
+- Head Commit: a36509025855f57f0d154ff8d74c32293acf3c59
+- Release Tag: cover-app-v1c
+- Deployed Application URL: https://hypercybers99.github.io/cover-app/
 - Contract Source Repo: https://github.com/hypercybers99/cover-genlayer/tree/cover-v1-final (tag cover-v1-final, commit de8ca89)
 - Network: GenLayer Studionet (Chain ID 61999, RPC https://studio.genlayer.com/api)
-- Total Commits: 21
+- Total Commits: 25
 - Status: Preview
 
 ---
@@ -39,7 +40,7 @@ Banned words scan passed: 0 occurrences.
 Parametric web-service cover on GenLayer studionet (demo credits).
 
 - **Contract and Evidence Repository**: [https://github.com/hypercybers99/cover-genlayer](https://github.com/hypercybers99/cover-genlayer/tree/cover-v1-final) (tag `cover-v1-final`)
-- **Deployed App URL**: not deployed yet (ready for owner deployment via Vercel)
+- **Deployed App URL**: [https://hypercybers99.github.io/cover-app/](https://hypercybers99.github.io/cover-app/)
 - **Cover Contract Explorer**: [0x4d12d00d527869a6a6f95358A11589ecf3C347e3](https://explorer-studio.genlayer.com/address/0x4d12d00d527869a6a6f95358A11589ecf3C347e3)
 - **CoverGuard Contract Explorer**: [0x6Ad8554F4Ca7eA3681c6a06b822B0d5c59993724](https://explorer-studio.genlayer.com/address/0x6Ad8554F4Ca7eA3681c6a06b822B0d5c59993724)
 
@@ -145,27 +146,35 @@ Test Scope Clarification:
 - **On-Chain E2E Suite (10/10 passed)**: Real on-chain transactions executed against Studionet (Chain 61999) via `scripts/e2e_full_chain.mjs` using the app's service layer (`src/services/walletClient.ts` and `src/services/readClient.ts`).
 
 Receipt rule enforced: `ACCEPTED/FINALIZED` + `MAJORITY_AGREE` + leader `SUCCESS`.
-Total attempts: 10 | Successes: 10 | Failures: 0
+Total write attempts: 10 | Successes: 10 | Failures: 0
 
-| Step | Function | Transaction Hash | Status Name | Result Name | Leader Result | Classification | Latency (s) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `1_claim_credits` | `claim_demo_credits` | `0xdc02877b869e3f9fd5384205c30a933bb0a3d1504ab421ad8e1e3cd2574966e8` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 8.69 |
-| `2_create_product` | `create_product` | `0x1910f442d04b746b18a89b2d6f20c919a49769b515c24459f50d04bc3e0afdc2` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 8.61 |
-| `3_fund_product` | `fund_product` | `0x1b197eecbf3faa8905948dc594bde97b74e7de957f2a90f1178a4b540d340a3a` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 5.44 |
-| `4_quote_premium` | `read/check` | `N/A` | `N/A` | `N/A` | `N/A` | `SUCCESS` | N/A |
-| `5_buy_cover` | `buy` | `0x40e8f1e15fb5161f63a67875163a6748ddc692bb276ab8a27dfc67237fa85fc2` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 15.34 |
-| `1` | `read/check` | `0xffdfb56133ef17db11712224a94c48eac3c8d87100a4564874f90b266b7ab18b` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 18.59 |
-| `6_settle_policy` | `settle` | `0xffdfb56133ef17db11712224a94c48eac3c8d87100a4564874f90b266b7ab18b` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 18.59 |
-| `7_cancel_policy` | `cancel` | `0xbc4742a69a1a2ac3ac2dd9d2a35cb8fd6623327f3e3f4baf9b30da2b27725302` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 12.01 |
-| `8_withdraw_unreserved` | `withdraw_unreserved` | `0xa4d33aca2e5b519a59b3aed87f8c38518b744547ce9de5348c9d11869727bc01` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 8.61 |
-| `9_coverguard` | `read/check` | `0x8443c18b9185cf0c2d456028bcd0a5d5bd454e949126e3495ebf35b6d09fdd8c` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 8.55 |
+### Real On-Chain Writes (Every row backed by a transaction receipt file)
+
+| Step | Function | Transaction Hash | Status Name | Result Name | Leader Result | Classification | Latency (s) | Receipt File |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `1_claim_credits` | `claim_demo_credits` | `0xdc02877b869e3f9fd5384205c30a933bb0a3d1504ab421ad8e1e3cd2574966e8` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 8.69 | `docs/e2e/step1_claim_credits.json` |
+| `2_create_product` | `create_product` | `0x1910f442d04b746b18a89b2d6f20c919a49769b515c24459f50d04bc3e0afdc2` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 8.61 | `docs/e2e/step2_create_product.json` |
+| `3_fund_product` | `fund_product` | `0x1b197eecbf3faa8905948dc594bde97b74e7de957f2a90f1178a4b540d340a3a` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 5.44 | `docs/e2e/step3_fund_product.json` |
+| `5_buy_cover` | `buy` | `0x40e8f1e15fb5161f63a67875163a6748ddc692bb276ab8a27dfc67237fa85fc2` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 15.34 | `docs/e2e/step5_buy_cover.json` |
+| `6_settle_policy` | `settle` | `0xffdfb56133ef17db11712224a94c48eac3c8d87100a4564874f90b266b7ab18b` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 18.59 | `docs/e2e/step6_settle_policy.json` |
+| `6a_update_source` | `update_source` | `0x2de6cad6f3b591d6a33e4107bad84503e3754f9729bd551e9cd1d4db16518c1b` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 5.48 | `docs/e2e/step6_update_source.json` |
+| `7_buy_second_policy` | `buy_policy` | `0x50569ecf959f0d52e14045282e8050f1fb2887f6bc8914348b4f618c761c9f72` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 12 | `docs/e2e/step7_buy_second.json` |
+| `7_cancel_policy` | `cancel` | `0xbc4742a69a1a2ac3ac2dd9d2a35cb8fd6623327f3e3f4baf9b30da2b27725302` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 12.01 | `docs/e2e/step7_cancel_policy.json` |
+| `8_withdraw_unreserved` | `withdraw_unreserved` | `0xa4d33aca2e5b519a59b3aed87f8c38518b744547ce9de5348c9d11869727bc01` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 8.61 | `docs/e2e/step8_withdraw.json` |
+| `9_coverguard` | `attest` | `0x8443c18b9185cf0c2d456028bcd0a5d5bd454e949126e3495ebf35b6d09fdd8c` | `ACCEPTED` | `MAJORITY_AGREE` | `SUCCESS` | `SUCCESS` | 8.55 | `docs/e2e/step9_coverguard.json` |
+
+### Reads (No Transaction Submitted)
+
+- **`quote_premium`** (`4_quote_premium`): Quoted 10 CR, formula ceiling 10 CR, charged 10 CR on buy (exact match)
+- **`is_covered & is_covered_for`** (`9_coverguard_views`): Policy 5 (PAID): covered=false; Policy 6 (CANCELLED): covered=false; Policy 7 (ACTIVE): covered=true, is_covered_for(50)=true, is_covered_for(100)=false
+- **`list_attestations`** (`9_list_attestations`): Retrieved on-chain attestation record for Policy 7
 
 ### Empirical Snapshot Evidence
 - **Step 1 (Claim Demo Credits)**: Buyer balance before: 0 CR, after: 1000 CR (+1000 CR delta).
 - **Step 2 (Create Product)**: Created Product ID `2` with terms hash `e55bc95b1d15b7e8e80f49aebc34d3c33efa1e751e8441e86b7a929e7149fef5`.
 - **Step 3 (Fund Pool)**: Creator deposited 300 CR; Pool balance: 300 CR, reserved: 0 CR.
 - **Step 4 & 5 (Quote vs Charged Buy)**: Quoted premium for 100 CR coverage at 1000 bps was 10 CR. Buyer balance changed from 1000 CR to 990 CR (-10 CR charged), exact match. Policy ID `5` created (`ACTIVE`).
-- **Step 6 (Settle Real Fixture)**: Source updated to `status-s1-outage-75.md`. Settlement ID `9` reached consensus on outcome `PAY_100` (75 min outage >= 60 min threshold). Policy `5` marked `PAID`, buyer received +100 CR payout (balance: 990 -> 1090 CR).
+- **Step 6 (Update Source & Settle Real Fixture)**: Source updated via transaction `0x2de6cad6...` to `status-s1-outage-75.md`. Settlement ID `9` reached consensus on outcome `PAY_100` (75 min outage >= 60 min threshold). Policy `5` marked `PAID`, buyer received +100 CR payout (balance: 990 -> 1090 CR).
 - **Step 7 (Cancel Policy & Refund Check)**: Bought policy `6` (coverage 50 CR, premium 5 CR). Cancelled policy `6`. Snapshot confirmed: 0 CR refund (contract design: non-refundable premium), 50 CR reserved liquidity released back to pool.
 - **Step 8 (Withdraw Unreserved)**: Creator withdrew 50 CR unreserved from pool. Creator balance: 700 -> 750 CR (+50 CR), Pool balance: 215 -> 165 CR.
 - **Step 9 (CoverGuard Gateway)**:
@@ -178,7 +187,31 @@ Total attempts: 10 | Successes: 10 | Failures: 0
 
 ---
 
-## 7. Automated Browser, Accessibility & Test Suite Results
+## 7. Deployed Production URL Audit & SPA Deep Link Proof
+
+Deployed Production URL: https://hypercybers99.github.io/cover-app/  
+Hosting Platform: GitHub Pages (automated deploy via GitHub Actions workflow `.github/workflows/deploy.yml`)
+
+| Audit Check | Measured Value | Standard / Requirement | Status |
+| :--- | :--- | :--- | :--- |
+| **Console Errors** | 0 errors | 0 console errors on initial load & navigation | PASS |
+| **Axe Accessibility (Light)** | 0 critical/serious | 0 WCAG 2.1 AA violations | PASS |
+| **Axe Accessibility (Dark)** | 0 critical/serious | 0 WCAG 2.1 AA violations | PASS |
+| **Mobile 360px Viewport Overflow** | 360px scroll / 360px client | Horizontal overflow === false | PASS |
+| **Base Typography Size** | 18px | Base font size >= 18px | PASS |
+| **Zero-Wallet Chain Read** | Success | On-chain catalog loads with no connected wallet | PASS |
+
+### Direct SPA Deep Link Access (404 Fallback Verification)
+
+| Deep Link Target | Direct Request URL | Server Response | Client Route Rendered | Document Title | Screenshot Evidence |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Product Detail #2** | `https://hypercybers99.github.io/cover-app/products/2` | 404 (Fallback) | Rendered | `Cover - Parametric Protection (Preview)` | `docs/deployed_audit/deeplink_products_2.png` |
+| **Policy Detail #5** | `https://hypercybers99.github.io/cover-app/policies/5` | 404 (Fallback) | Rendered | `Cover - Parametric Protection (Preview)` | `docs/deployed_audit/deeplink_policies_5.png` |
+| **CoverGuard Gateway** | `https://hypercybers99.github.io/cover-app/guard` | 404 (Fallback) | Rendered | `Cover - Parametric Protection (Preview)` | `docs/deployed_audit/deeplink_guard.png` |
+
+---
+
+## 8. Automated Browser, Accessibility & Test Suite Results
 
 - **Unit & Integration Suite (Vitest)**: 50/50 passed
   - Receipts classification (8 combinations): PASS
@@ -198,60 +231,40 @@ Total attempts: 10 | Successes: 10 | Failures: 0
 
 ---
 
-## 8. GitHub Actions CI Verification
+## 9. GitHub Actions CI & Deployment Verification
 
-Push-triggered CI run queried via GitHub API (`gh api`):
+### CI Run Proof (Build, Lint, Test, Scan & Browser Audit)
+- Run ID: 41285669523
+- Status: Completed (Success)
+- Run Details:
 
 ```json
-{"conclusion":"success","head_sha":"79ae87ec6e13092092347dacb8aa19cbf4c0d373","html_url":"https://github.com/hypercybers99/cover-app/actions/runs/41282950726","id":41282950726,"status":"completed"}
+{"conclusion":"success","head_sha":"a36509025855f57f0d154ff8d74c32293acf3c59","html_url":"https://github.com/hypercybers99/cover-app/actions/runs/41285669523","id":41285669523,"status":"completed"}
 ```
 
-Completed job steps (`gh run view`):
+### GitHub Pages Deployment Run Proof
+- Run ID: 41285669480
+- Status: Completed (Success)
+- Deployed Site: https://hypercybers99.github.io/cover-app/
+- Run Details:
 
-```
-✓ main CI · 41282950726
-Triggered via push about 6 minutes ago
-
-✓ Build, Lint, Test & Browser Audit in 1m39s (ID 124778420767)
-  ✓ Set up job
-  ✓ Checkout Code
-  ✓ Setup Node.js
-  ✓ Install Dependencies
-  ✓ Static Scans (Banned Words, Flat Styling, Contrast)
-  ✓ Typecheck & Production Build
-  ✓ Unit & Integration Tests (Vitest)
-  ✓ Install Playwright Browsers
-  ✓ Run Playwright E2E Tests
-  ✓ Run Browser Visual & Accessibility Audit
-  ✓ Post Setup Node.js
-  ✓ Post Checkout Code
-  ✓ Complete job
-
-ANNOTATIONS
-! Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-Build, Lint, Test & Browser Audit: .github#6
-
-- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
-Build, Lint, Test & Browser Audit: .github#1
-
-
-To see the full job log, try: gh run view --log --job=124778420767
-View this run on GitHub: https://github.com/hypercybers99/cover-app/actions/runs/41282950726
+```json
+{"conclusion":"success","head_sha":"a36509025855f57f0d154ff8d74c32293acf3c59","html_url":"https://github.com/hypercybers99/cover-app/actions/runs/41285669480","id":41285669480,"status":"completed"}
 ```
 
 ---
 
-## 9. Git Repository State Verification
+## 10. Git Repository State Verification
 
 ```bash
 $ git rev-parse HEAD
-926ad5bea09d7196aaf3a786b29f5b651d71a624
+a36509025855f57f0d154ff8d74c32293acf3c59
 
 $ git rev-parse origin/main
-926ad5bea09d7196aaf3a786b29f5b651d71a624
+a36509025855f57f0d154ff8d74c32293acf3c59
 
-$ git rev-parse cover-app-v1^{commit}
-89cd3cefb719f67084e34d7b4679b76a29892dda
+$ git rev-parse cover-app-v1c^{commit}
+a36509025855f57f0d154ff8d74c32293acf3c59
 
 $ git status --short
 (working tree clean)
@@ -259,22 +272,24 @@ $ git status --short
 
 ---
 
-## 10. Needed from the Owner
+## 11. Optional Owner Actions
 
-1. **Vercel Production Deployment**:
-   Run the following commands in the repository directory to deploy:
+1. **Deployed Production Preview**:
+   The application is deployed and directly accessible at:
+   https://hypercybers99.github.io/cover-app/
+2. **Optional Vercel Deployment**:
+   If deployment to Vercel is desired, `vercel.json` is pre-configured with SPA route rewrites to `/index.html`:
    ```bash
    npx vercel login
    npx vercel deploy --prod
    ```
-   `vercel.json` is pre-configured with SPA route rewrites to `/index.html`.
-2. **MetaMask Interactive Manual Run**:
+3. **MetaMask Interactive Manual Run**:
    Follow `docs/MANUAL_METAMASK_TEST.md` to test the interactive MetaMask popup in your preferred desktop browser.
 
 ---
 
-## 11. Deviations & What Was Not Measured
+## 12. Deviations & What Was Not Measured
 
-- **Vercel Production URL**: Not deployed yet; Vercel CLI requires interactive owner authentication.
+- **Browser Wallets**: UI tests and the chain script use a test signer from `.env`; real MetaMask was not run by the agent (see `docs/MANUAL_METAMASK_TEST.md` for manual owner verification instructions).
 - **Contract Redeploy**: Contracts were NOT changed and NOT redeployed per strict instructions. Active contracts remain `0x4d12...47e3` and `0x6Ad8...3724`.
-- **Third-Party Browser Wallets**: Automated testing was executed with MetaMask provider interfaces; other wallets (e.g. Coinbase Wallet, Rabby) were not measured.
+- **Alternate Wallets**: Third-party wallets (e.g. Coinbase Wallet, Rabby) were not measured.
