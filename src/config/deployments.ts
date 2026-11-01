@@ -53,3 +53,7 @@ export const DEPLOYMENTS: {
   },
   promptSha256: '90be3b95dd867b8cc3a04f9464e3a1ab3b499343d3c4a40664042651092ecca1',
 };
+
+export const ACTIVE_DEPLOYMENTS = DEPLOYMENTS;
+export const GENLAYER_STUDIONET = NETWORK;
+

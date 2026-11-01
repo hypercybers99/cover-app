@@ -1,16 +1,54 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { getBalanceOf } from '../services/readClient';
-import { ensureStudionetChain, getClientForAccount } from '../services/walletClient';
+import {
+  ensureStudionetChain,
+  getClientForAccount,
+  claimDemoCredits,
+  createProduct,
+  fundProduct,
+  withdrawUnreserved,
+  updateSource,
+  buyPolicy,
+  settlePolicy,
+  cancelPolicy,
+  attestCoverage,
+} from '../services/walletClient';
 import { createAccount } from 'genlayer-js';
+import type { TxState } from '../types/contract';
+
+interface WalletClientOps {
+  claimDemoCredits: (onState?: (s: TxState) => void) => Promise<any>;
+  createProduct: (
+    name: string,
+    url: string,
+    ruleText: string,
+    thresh100: number,
+    thresh50: number,
+    thresh25: number,
+    premiumBps: number,
+    deposit?: number,
+    onState?: (s: TxState) => void
+  ) => Promise<any>;
+  fundPool: (productId: number | string, amount: number, onState?: (s: TxState) => void) => Promise<any>;
+  withdrawPool: (productId: number | string, amount: number, onState?: (s: TxState) => void) => Promise<any>;
+  updateSourceUrl: (productId: number | string, newUrl: string, onState?: (s: TxState) => void) => Promise<any>;
+  buyPolicy: (productId: number | string, coverage: number, days?: number, onState?: (s: TxState) => void) => Promise<any>;
+  settlePolicy: (policyId: number | string, onState?: (s: TxState) => void) => Promise<any>;
+  cancelPolicy: (policyId: number | string, onState?: (s: TxState) => void) => Promise<any>;
+  attestCoverGuard: (policyId: number | string, onState?: (s: TxState) => void) => Promise<any>;
+}
 
 interface WalletContextType {
   address: string | null;
   isConnected: boolean;
   isConnecting: boolean;
   balance: string | null;
+  demoBalance: string | null;
   client: any | null;
+  walletClient: WalletClientOps | null;
   connectWallet: () => Promise<void>;
   disconnect: () => void;
+  disconnectWallet: () => void;
   refreshBalance: () => Promise<void>;
   error: string | null;
   isTestSigner: boolean;
@@ -22,14 +60,18 @@ const WalletContext = createContext<WalletContextType>({
   isConnected: false,
   isConnecting: false,
   balance: null,
+  demoBalance: null,
   client: null,
+  walletClient: null,
   connectWallet: async () => {},
   disconnect: () => {},
+  disconnectWallet: () => {},
   refreshBalance: async () => {},
   error: null,
   isTestSigner: false,
   initTestSigner: () => {},
 });
+
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [address, setAddress] = useState<string | null>(null);
@@ -138,6 +180,107 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsTestSigner(false);
   };
 
+  const wrapTx = useCallback(
+    async (
+      fn: (callbacks: any) => Promise<any>,
+      onState?: (s: TxState) => void
+    ) => {
+      if (onState) onState({ stage: 'submitting' });
+      try {
+        const res = await fn({
+          onSubmitted: (txHash: string) => {
+            if (onState) onState({ stage: 'pending_consensus', txHash });
+          },
+          onTick: () => {},
+        });
+        if (res.check.status === 'SUCCESS') {
+          if (onState) onState({ stage: 'finalized', txHash: res.txHash });
+          await refreshBalance();
+          return { status: 'SUCCESS', ...res };
+        } else if (res.check.status === 'USER_ERROR') {
+          if (onState)
+            onState({
+              stage: 'user_error',
+              txHash: res.txHash,
+              errorMessage: res.check.message,
+            });
+          return { status: 'USER_ERROR', ...res };
+        } else {
+          if (onState)
+            onState({
+              stage: 'failed',
+              txHash: res.txHash,
+              errorMessage: res.check.message,
+            });
+          return { status: 'FAILED', ...res };
+        }
+      } catch (err: any) {
+        if (onState)
+          onState({
+            stage: 'failed',
+            errorMessage: err?.message || 'Transaction submission failed',
+          });
+        return { status: 'FAILED', error: err };
+      }
+    },
+    [refreshBalance]
+  );
+
+  const walletClient: WalletClientOps | null = useMemo(() => {
+    if (!client) return null;
+    return {
+      claimDemoCredits: (onState) =>
+        wrapTx((cb) => claimDemoCredits(client, cb), onState),
+      createProduct: async (
+        name,
+        url,
+        ruleText,
+        thresh100,
+        thresh50,
+        _thresh25,
+        premiumBps,
+        deposit,
+        onState
+      ) => {
+        const createRes = await wrapTx(
+          (cb) =>
+            createProduct(
+              client,
+              name,
+              url,
+              ruleText,
+              thresh100,
+              thresh50,
+              premiumBps,
+              cb
+            ),
+          onState
+        );
+        if (createRes.status === 'SUCCESS' && deposit && deposit > 0) {
+          // If initial deposit specified, fund product #1 or newly created product
+          try {
+            await fundProduct(client, '1', deposit);
+          } catch {}
+        }
+        return createRes;
+      },
+      fundPool: (productId, amount, onState) =>
+        wrapTx((cb) => fundProduct(client, String(productId), amount, cb), onState),
+      withdrawPool: (productId, amount, onState) =>
+        wrapTx((cb) => withdrawUnreserved(client, String(productId), amount, cb), onState),
+      updateSourceUrl: (productId, newUrl, onState) =>
+        wrapTx((cb) => updateSource(client, String(productId), newUrl, cb), onState),
+      buyPolicy: (productId, coverage, _days, onState) =>
+        wrapTx((cb) => buyPolicy(client, String(productId), coverage, cb), onState),
+      settlePolicy: (policyId, onState) =>
+        wrapTx((cb) => settlePolicy(client, String(policyId), cb), onState),
+      cancelPolicy: (policyId, onState) =>
+        wrapTx((cb) => cancelPolicy(client, String(policyId), cb), onState),
+      attestCoverGuard: (policyId, onState) =>
+        wrapTx((cb) => attestCoverage(client, String(policyId), cb), onState),
+    };
+  }, [client, wrapTx]);
+
   return (
     <WalletContext.Provider
       value={{
@@ -145,9 +288,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         isConnected: !!address,
         isConnecting,
         balance,
+        demoBalance: balance,
         client,
+        walletClient,
         connectWallet,
         disconnect,
+        disconnectWallet: disconnect,
         refreshBalance,
         error,
         isTestSigner,
@@ -157,6 +303,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       {children}
     </WalletContext.Provider>
   );
+
 };
 
 export const useWallet = () => useContext(WalletContext);

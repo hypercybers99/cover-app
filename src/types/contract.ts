@@ -24,6 +24,7 @@ export interface PolicyRecord {
   status: PolicyStatus;
   settlement_id: string;
   cancel_refund: string;
+  terms_hash?: string;
   schema_version?: string;
 }
 
@@ -90,3 +91,61 @@ export interface AttestationRecord {
   terms_hash: string;
   schema_version?: string;
 }
+
+// UI and Application Domain Types
+export type Outcome = 'PAY_100' | 'PAY_50' | 'PAY_25' | 'NO_PAY' | 'REVIEW';
+export type Gate = 'PAGE_UNCHANGED' | 'TRIPWIRE' | 'JUDGED';
+
+export interface TxState {
+  stage: 'idle' | 'submitting' | 'pending_consensus' | 'finalized' | 'user_error' | 'failed';
+  txHash?: string;
+  errorMessage?: string;
+}
+
+export interface Product {
+  id: number;
+  name: string;
+  source_url: string;
+  rule_text: string;
+  payout_100_threshold: number;
+  payout_50_threshold: number;
+  payout_25_threshold: number;
+  premium_bps: number;
+  creator: string;
+  pool_balance: number;
+  reserved: number;
+  active_policies: number;
+}
+
+export interface Policy {
+  id: number;
+  product_id: number;
+  buyer: string;
+  coverage_amount: number;
+  premium: number;
+  start_time: number;
+  end_time: number;
+  status: 'ACTIVE' | 'SETTLED' | 'CANCELLED';
+  outcome: Outcome;
+  gate: Gate;
+  settlement_tx_hash?: string;
+  initial_snapshot_hash?: string;
+  settlement_snapshot_hash?: string;
+}
+
+export interface Limits {
+  min_deposit: number;
+  max_deposit: number;
+  min_coverage: number;
+  max_coverage: number;
+  min_duration_days: number;
+  max_duration_days: number;
+  min_premium_bps: number;
+  max_premium_bps: number;
+  name_min_len: number;
+  name_max_len: number;
+  url_max_len: number;
+  rule_min_len: number;
+  rule_max_len: number;
+}
+

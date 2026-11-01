@@ -9,6 +9,11 @@ import type {
   PlatformLimits,
   CoverCheckRecord,
   AttestationRecord,
+  Product,
+  Policy,
+  Limits,
+  Outcome,
+  Gate,
 } from '../types/contract';
 
 export const publicClient = createClient({
@@ -16,8 +21,9 @@ export const publicClient = createClient({
   endpoint: NETWORK.rpcUrl,
 });
 
-const COVER_ADDRESS = DEPLOYMENTS.cover.address;
-const GUARD_ADDRESS = DEPLOYMENTS.coverGuard.address;
+const COVER_ADDRESS = DEPLOYMENTS.cover.address as `0x${string}`;
+const GUARD_ADDRESS = DEPLOYMENTS.coverGuard.address as `0x${string}`;
+
 
 function parseJson<T>(raw: unknown): T {
   if (typeof raw === 'string') {
@@ -286,3 +292,138 @@ export async function listAttestations(attesterAddress: string, limit: number = 
     return [];
   }
 }
+
+// ============================================================================
+// Object-Oriented Client Classes for UI Pages
+// ============================================================================
+
+export class CoverReadClient {
+  async getProductCount(): Promise<number> {
+    const stats = await getStats();
+    return Math.max(0, parseInt(stats.next_product || '1', 10) - 1);
+  }
+
+  async getAllProducts(limit: number = 20): Promise<Product[]> {
+    const list = await listProducts(limit);
+    return list.map(this.mapProduct);
+  }
+
+  async getProduct(productId: number | string): Promise<Product | null> {
+    const rec = await getProduct(String(productId));
+    if (!rec) return null;
+    return this.mapProduct(rec);
+  }
+
+  async getPolicy(policyId: number | string): Promise<Policy | null> {
+    const rec = await getPolicy(String(policyId));
+    if (!rec) return null;
+    let outcome: Outcome = 'REVIEW';
+    let gate: Gate = 'JUDGED';
+    let settlement_snapshot_hash: string | undefined;
+    let settlement_tx_hash: string | undefined;
+
+    if (rec.settlement_id && rec.settlement_id !== '0') {
+      const sett = await getSettlement(rec.settlement_id);
+      if (sett) {
+        outcome = (sett.outcome as Outcome) || 'REVIEW';
+        gate = (sett.gate as Gate) || 'JUDGED';
+        settlement_snapshot_hash = sett.quote;
+      }
+    }
+
+    return {
+      id: parseInt(rec.id, 10),
+      product_id: parseInt(rec.product_id, 10),
+      buyer: rec.holder,
+      coverage_amount: parseInt(rec.coverage || '0', 10),
+      premium: parseInt(rec.premium || '0', 10),
+      start_time: rec.created_at ? parseInt(rec.created_at, 10) : 0,
+      end_time: rec.created_at ? parseInt(rec.created_at, 10) + 30 * 86400 : 0,
+      status: rec.status === 'PAID' ? 'SETTLED' : (rec.status as any),
+      outcome,
+      gate,
+      settlement_tx_hash,
+      initial_snapshot_hash: rec.terms_hash,
+      settlement_snapshot_hash,
+    };
+  }
+
+  async getProductPolicies(productId: number | string, limit: number = 20): Promise<Policy[]> {
+    const recs = await listPoliciesByProduct(String(productId), limit);
+    return recs.map((rec) => ({
+      id: parseInt(rec.id, 10),
+      product_id: parseInt(rec.product_id, 10),
+      buyer: rec.holder,
+      coverage_amount: parseInt(rec.coverage || '0', 10),
+      premium: parseInt(rec.premium || '0', 10),
+      start_time: rec.created_at ? parseInt(rec.created_at, 10) : 0,
+      end_time: rec.created_at ? parseInt(rec.created_at, 10) + 30 * 86400 : 0,
+      status: rec.status === 'PAID' ? 'SETTLED' : (rec.status as any),
+      outcome: 'REVIEW',
+      gate: 'JUDGED',
+    }));
+  }
+
+  async quotePremium(productId: number | string, coverage: number, _days?: number): Promise<number> {
+    const prod = await this.getProduct(productId);
+    const bps = prod ? prod.premium_bps : 500;
+    return quotePremium(coverage, bps);
+  }
+
+  async getLimits(): Promise<Limits> {
+    const lim = await getLimits();
+    return {
+      min_deposit: 1,
+      max_deposit: 1000000,
+      min_coverage: 1,
+      max_coverage: 100000,
+      min_duration_days: 1,
+      max_duration_days: 365,
+      min_premium_bps: parseInt(lim.min_bps || '100', 10),
+      max_premium_bps: parseInt(lim.max_bps || '5000', 10),
+      name_min_len: 3,
+      name_max_len: parseInt(lim.max_name_chars || '60', 10),
+      url_max_len: parseInt(lim.max_url_chars || '300', 10),
+      rule_min_len: 10,
+      rule_max_len: parseInt(lim.max_rule_chars || '200', 10),
+    };
+  }
+
+  private mapProduct(rec: ProductRecord): Product {
+    return {
+      id: parseInt(rec.id, 10),
+      name: rec.name,
+      source_url: rec.url,
+      rule_text: rec.rule_text,
+      payout_100_threshold: parseInt(rec.min_full || '90', 10),
+      payout_50_threshold: parseInt(rec.min_half || '50', 10),
+      payout_25_threshold: 25,
+      premium_bps: parseInt(rec.premium_bps || '500', 10),
+      creator: rec.creator,
+      pool_balance: parseInt(rec.pool_balance || '0', 10),
+      reserved: 0,
+      active_policies: 0,
+    };
+  }
+}
+
+export class CoverGuardReadClient {
+  async getCoverContract(): Promise<string> {
+    return COVER_ADDRESS;
+  }
+
+  async isCovered(holderAddress: string, policyId?: string): Promise<boolean> {
+    const res = await isCovered(holderAddress, policyId || '1');
+    return res.covered === 'true' || res.covered === '1';
+  }
+
+  async isCoveredFor(holderAddress: string, minCoverage: number): Promise<boolean> {
+    return isCoveredFor(holderAddress, '1', '1', '', minCoverage);
+  }
+
+  async getAttestation(attestationIdOrAddress: string): Promise<number | null> {
+    const rec = await getAttestation(attestationIdOrAddress);
+    return rec ? Date.now() / 1000 : null;
+  }
+}
+

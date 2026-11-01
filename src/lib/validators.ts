@@ -105,3 +105,70 @@ export function validatePositiveAmount(amount: number): ValidationResult {
   }
   return { valid: true };
 }
+
+export function validateCreateProductInput(input: {
+  name: string;
+  sourceUrl: string;
+  ruleText: string;
+  payout100Threshold: number;
+  payout50Threshold: number;
+  payout25Threshold?: number;
+  premiumBps: number;
+  initialDeposit?: number;
+}): ValidationResult {
+  const nameRes = validateProductName(input.name);
+  if (!nameRes.valid) return nameRes;
+
+  const urlRes = validateProductUrl(input.sourceUrl);
+  if (!urlRes.valid) return urlRes;
+
+  const ruleRes = validateRuleText(input.ruleText);
+  if (!ruleRes.valid) return ruleRes;
+
+  const threshRes = validateThresholds(input.payout100Threshold, input.payout50Threshold);
+  if (!threshRes.valid) return threshRes;
+
+  const premRes = validatePremiumRate(input.premiumBps);
+  if (!premRes.valid) return premRes;
+
+  if (input.initialDeposit !== undefined && input.initialDeposit <= 0) {
+    return { valid: false, error: 'bad amount' };
+  }
+
+  return { valid: true };
+}
+
+export function validateBuyPolicyInput(
+  coverage: number,
+  _days?: number,
+  availableLiquidity?: number
+): ValidationResult {
+  if (!Number.isInteger(coverage) || coverage <= 0) {
+    return { valid: false, error: 'bad coverage' };
+  }
+  if (availableLiquidity !== undefined && coverage > availableLiquidity) {
+    return { valid: false, error: 'insufficient unreserved pool balance' };
+  }
+  return { valid: true };
+}
+
+export function validateFundPoolInput(amount: number): ValidationResult {
+  return validatePositiveAmount(amount);
+}
+
+export function validateWithdrawPoolInput(
+  amount: number,
+  availableLiquidity: number
+): ValidationResult {
+  const pos = validatePositiveAmount(amount);
+  if (!pos.valid) return pos;
+  if (amount > availableLiquidity) {
+    return { valid: false, error: 'insufficient unreserved pool balance' };
+  }
+  return { valid: true };
+}
+
+export function validateUpdateSourceUrlInput(urlStr: string): ValidationResult {
+  return validateProductUrl(urlStr);
+}
+

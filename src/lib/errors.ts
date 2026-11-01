@@ -236,3 +236,13 @@ export function mapContractError(raw: unknown): ErrorExplanation {
     contract: "Common",
   };
 }
+
+export function formatUserError(raw: unknown): { title: string; explanation: string; action?: string } {
+  const mapped = mapContractError(raw);
+  return {
+    title: `${mapped.contract} User Rejection`,
+    explanation: mapped.plainMessage,
+    action: mapped.nextStep,
+  };
+}
+
