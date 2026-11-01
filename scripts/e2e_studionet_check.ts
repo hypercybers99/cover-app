@@ -117,7 +117,7 @@ async function main() {
   const outFile = path.join(e2eDir, 'e2e_studionet_receipt.json');
   fs.writeFileSync(outFile, JSON.stringify(record, null, 2), 'utf8');
   console.log(`\nSaved on-chain E2E receipt to: docs/e2e/e2e_studionet_receipt.json`);
-  console.log('PASS: On-chain interaction verified on live studionet!');
+  console.log('PASS: On-chain interaction verified on studionet!');
 }
 
 main().catch((err) => {
