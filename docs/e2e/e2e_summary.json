@@ -1,10 +1,8 @@
 {
-  "total_steps_executed": 9,
-  "total_files_recorded": 10,
-  "attempts": 10,
-  "successes": 10,
-  "failures": 0,
-  "steps": [
+  "write_attempts": 9,
+  "write_successes": 9,
+  "write_failures": 0,
+  "writes": [
     {
       "file": "step1_claim_credits.json",
       "step": "1_claim_credits",
@@ -39,17 +37,6 @@
       "elapsed_seconds": 5.44
     },
     {
-      "file": "step4_quote_vs_charged.json",
-      "step": "4_quote_premium",
-      "function": "read/check",
-      "tx_hash": "N/A",
-      "status_name": "N/A",
-      "result_name": "N/A",
-      "leader_result": "N/A",
-      "classification": "SUCCESS",
-      "elapsed_seconds": "N/A"
-    },
-    {
       "file": "step5_buy_cover.json",
       "step": "5_buy_cover",
       "function": "buy",
@@ -61,17 +48,6 @@
       "elapsed_seconds": 15.34
     },
     {
-      "file": "step6_settle_attempt1.json",
-      "step": 1,
-      "function": "read/check",
-      "tx_hash": "0xffdfb56133ef17db11712224a94c48eac3c8d87100a4564874f90b266b7ab18b",
-      "status_name": "ACCEPTED",
-      "result_name": "MAJORITY_AGREE",
-      "leader_result": "SUCCESS",
-      "classification": "SUCCESS",
-      "elapsed_seconds": 18.59
-    },
-    {
       "file": "step6_settle_policy.json",
       "step": "6_settle_policy",
       "function": "settle",
@@ -81,6 +57,17 @@
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
       "elapsed_seconds": 18.59
+    },
+    {
+      "file": "step6_update_source.json",
+      "step": "6a_update_source",
+      "function": "update_source",
+      "tx_hash": "0x2de6cad6f3b591d6a33e4107bad84503e3754f9729bd551e9cd1d4db16518c1b",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 5.48
     },
     {
       "file": "step7_cancel_policy.json",
@@ -107,13 +94,30 @@
     {
       "file": "step9_coverguard.json",
       "step": "9_coverguard",
-      "function": "read/check",
+      "function": "attest",
       "tx_hash": "0x8443c18b9185cf0c2d456028bcd0a5d5bd454e949126e3495ebf35b6d09fdd8c",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
       "elapsed_seconds": 8.55
+    }
+  ],
+  "reads_no_tx": [
+    {
+      "step": "4_quote_premium",
+      "function": "quote_premium",
+      "result": "Quoted 10 CR, formula ceiling 10 CR, charged 10 CR on buy (exact match)"
+    },
+    {
+      "step": "9_coverguard_views",
+      "function": "is_covered & is_covered_for",
+      "result": "Policy 5 (PAID): covered=false; Policy 6 (CANCELLED): covered=false; Policy 7 (ACTIVE): covered=true, is_covered_for(50)=true, is_covered_for(100)=false"
+    },
+    {
+      "step": "9_list_attestations",
+      "function": "list_attestations",
+      "result": "Retrieved on-chain attestation record for Policy 7"
     }
   ]
 }

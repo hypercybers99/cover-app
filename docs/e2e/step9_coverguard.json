@@ -1,6 +1,7 @@
 {
   "step": "9_coverguard",
   "caller": "0x18A35BaD91ca4D30D10D25E01026f6b2c202457A",
+  "function": "attest",
   "policy_1_check": {
     "coverage": "100",
     "covered": "false",

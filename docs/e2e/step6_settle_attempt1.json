@@ -1,9 +1,0 @@
-{
-  "attempt": 1,
-  "tx_hash": "0xffdfb56133ef17db11712224a94c48eac3c8d87100a4564874f90b266b7ab18b",
-  "status_name": "ACCEPTED",
-  "result_name": "MAJORITY_AGREE",
-  "leader_result": "SUCCESS",
-  "classification": "SUCCESS",
-  "elapsed_seconds": 18.59
-}
