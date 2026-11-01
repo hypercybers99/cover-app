@@ -80,6 +80,8 @@ async function main() {
 
   console.log(`  Deployed byte length:      ${onchainCoverBuf.length}`);
   console.log(`  Local byte length:         ${coverLocalBuf.length}`);
+  console.log(`  First 16 bytes:            ${onchainCoverBuf.subarray(0, 16).toString('hex')}`);
+  console.log(`  Last 16 bytes:             ${onchainCoverBuf.subarray(onchainCoverBuf.length - 16).toString('hex')}`);
   console.log(`  On-chain SHA-256:          ${onchainCoverSha}`);
   console.log(`  Byte-for-byte match:       ${coverMatch}`);
 
@@ -90,6 +92,8 @@ async function main() {
 
   console.log(`  Deployed byte length:      ${onchainGuardBuf.length}`);
   console.log(`  Local byte length:         ${guardLocalBuf.length}`);
+  console.log(`  First 16 bytes:            ${onchainGuardBuf.subarray(0, 16).toString('hex')}`);
+  console.log(`  Last 16 bytes:             ${onchainGuardBuf.subarray(onchainGuardBuf.length - 16).toString('hex')}`);
   console.log(`  On-chain SHA-256:          ${onchainGuardSha}`);
   console.log(`  Byte-for-byte match:       ${guardMatch}`);
 

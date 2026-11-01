@@ -220,7 +220,13 @@ async function runAudit() {
     }
   } finally {
     console.log('Stopping preview server...');
-    server.kill();
+    try {
+      server.kill('SIGTERM');
+      if (process.platform !== 'win32' && server.pid) {
+        process.kill(-server.pid, 'SIGTERM');
+      }
+    } catch {}
+    process.exit(process.exitCode || 0);
   }
 }
 
