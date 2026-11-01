@@ -1,0 +1,57 @@
+{
+  "_meta": {
+    "source_repo": "https://github.com/hypercybers99/cover-genlayer",
+    "source_tag": "cover-v1-final",
+    "source_commit": "de8ca897d2c0ad449facba25739f631292209e65",
+    "source_path": "docs/evidence/robustness/iter2/summary.json",
+    "synced_at": "2026-11-01T03:50:17.347Z"
+  },
+  "data": {
+    "contract_address": "0x3c302641001E563ce20d4ea6376f9BfA10165877",
+    "prompt_sha256": "90be3b95dd867b8cc3a04f9464e3a1ab3b499343d3c4a40664042651092ecca1",
+    "batches": {
+      "s1": {
+        "total": 10,
+        "parsed": 10,
+        "matches": 10,
+        "pass": true
+      },
+      "s2": {
+        "total": 10,
+        "parsed": 10,
+        "matches": 10,
+        "pass": true
+      },
+      "s3": {
+        "total": 10,
+        "parsed": 10,
+        "matches": 10,
+        "pass": true
+      },
+      "s4": {
+        "total": 10,
+        "parsed": 9,
+        "matches": 9,
+        "pass": false
+      },
+      "s5": {
+        "total": 10,
+        "parsed": 10,
+        "matches": 10,
+        "pass": true
+      },
+      "s7": {
+        "total": 10,
+        "parsed": 10,
+        "matches": 10,
+        "pass": true
+      },
+      "s4_rerun": {
+        "total": 10,
+        "parsed": 10,
+        "matches": 10,
+        "pass": true
+      }
+    }
+  }
+}
