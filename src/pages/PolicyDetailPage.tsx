@@ -98,7 +98,7 @@ export const PolicyDetailPage: React.FC = () => {
         <p className="text-ink-muted">{error || `Policy #${policyId} does not exist.`}</p>
         <Link
           to="/products"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover min-h-[48px]"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-contrast font-medium hover:bg-primary-hover min-h-[48px]"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Browse Products</span>
@@ -262,7 +262,7 @@ export const PolicyDetailPage: React.FC = () => {
             <button
               type="button"
               onClick={handleSettle}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-hover min-h-[48px]"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-primary text-primary-contrast font-semibold hover:bg-primary-hover min-h-[48px]"
             >
               Trigger Settlement
             </button>

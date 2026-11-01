@@ -27,6 +27,7 @@
   "is_covered_for_50": true,
   "is_covered_for_100": false,
   "attest_tx_hash": "0x8443c18b9185cf0c2d456028bcd0a5d5bd454e949126e3495ebf35b6d09fdd8c",
+  "tx_hash": "0x8443c18b9185cf0c2d456028bcd0a5d5bd454e949126e3495ebf35b6d09fdd8c",
   "status_name": "ACCEPTED",
   "result_name": "MAJORITY_AGREE",
   "leader_result": "SUCCESS",

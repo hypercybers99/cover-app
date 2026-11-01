@@ -50,7 +50,7 @@ export const LandingPage: React.FC = () => {
         <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
           <Link
             to="/products"
-            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-white font-semibold text-lg hover:bg-primary-hover min-h-[48px]"
+            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-primary-contrast font-semibold text-lg hover:bg-primary-hover min-h-[48px]"
           >
             <span>Explore Products</span>
             <ArrowRight className="w-5 h-5" />
@@ -119,7 +119,7 @@ export const LandingPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Step 1 */}
           <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4">
-            <div className="w-12 h-12 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xl">
+            <div className="w-12 h-12 rounded-lg bg-primary text-primary-contrast flex items-center justify-center font-bold text-xl">
               1
             </div>
             <h3 className="text-xl font-bold text-ink">Define Coverage Product</h3>
@@ -130,7 +130,7 @@ export const LandingPage: React.FC = () => {
 
           {/* Step 2 */}
           <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4">
-            <div className="w-12 h-12 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xl">
+            <div className="w-12 h-12 rounded-lg bg-primary text-primary-contrast flex items-center justify-center font-bold text-xl">
               2
             </div>
             <h3 className="text-xl font-bold text-ink">Purchase Protection</h3>
@@ -141,7 +141,7 @@ export const LandingPage: React.FC = () => {
 
           {/* Step 3 */}
           <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4">
-            <div className="w-12 h-12 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xl">
+            <div className="w-12 h-12 rounded-lg bg-primary text-primary-contrast flex items-center justify-center font-bold text-xl">
               3
             </div>
             <h3 className="text-xl font-bold text-ink">Consensus Settlement</h3>

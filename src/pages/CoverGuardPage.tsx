@@ -88,7 +88,7 @@ export const CoverGuardPage: React.FC = () => {
       {/* Title */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-primary text-primary-contrast flex items-center justify-center">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <h1 className="text-3xl font-extrabold text-ink">CoverGuard Verification</h1>
@@ -157,7 +157,7 @@ export const CoverGuardPage: React.FC = () => {
                 type="button"
                 onClick={() => handleLookup()}
                 disabled={checking || !queryAddress}
-                className="px-5 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-hover disabled:opacity-50 shrink-0 min-h-[48px] flex items-center gap-2"
+                className="px-5 py-2.5 rounded-lg bg-primary text-primary-contrast font-semibold hover:bg-primary-hover disabled:opacity-50 shrink-0 min-h-[48px] flex items-center gap-2"
               >
                 <Search className="w-4 h-4" />
                 <span>{checking ? 'Checking...' : 'Verify'}</span>
@@ -242,7 +242,7 @@ export const CoverGuardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleAttest}
-                  className="px-4 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover shrink-0 min-h-[48px] flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-lg bg-primary text-primary-contrast font-medium hover:bg-primary-hover shrink-0 min-h-[48px] flex items-center gap-2"
                 >
                   <FileCheck className="w-4 h-4" />
                   <span>Attest on CoverGuard</span>

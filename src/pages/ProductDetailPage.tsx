@@ -198,7 +198,7 @@ export const ProductDetailPage: React.FC = () => {
         <p className="text-ink-muted">{error || `Product #${productId} does not exist.`}</p>
         <Link
           to="/products"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover min-h-[48px]"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-contrast font-medium hover:bg-primary-hover min-h-[48px]"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Products</span>
@@ -339,7 +339,7 @@ export const ProductDetailPage: React.FC = () => {
                   txState.stage === 'submitting' ||
                   txState.stage === 'pending_consensus'
                 }
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-white font-semibold text-lg hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-primary-contrast font-semibold text-lg hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
               >
                 <Shield className="w-5 h-5" />
                 <span>
@@ -469,7 +469,7 @@ export const ProductDetailPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={!isConnected}
-                  className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-hover shrink-0 min-h-[44px]"
+                  className="px-4 py-2 rounded-lg bg-primary text-primary-contrast text-sm font-semibold hover:bg-primary-hover shrink-0 min-h-[44px]"
                 >
                   Fund
                 </button>
@@ -526,7 +526,7 @@ export const ProductDetailPage: React.FC = () => {
                     />
                     <button
                       type="submit"
-                      className="w-full px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-hover min-h-[44px]"
+                      className="w-full px-4 py-2 rounded-lg bg-primary text-primary-contrast text-sm font-semibold hover:bg-primary-hover min-h-[44px]"
                     >
                       Save New Source URL
                     </button>

@@ -119,7 +119,7 @@ export const CreateProductPage: React.FC = () => {
           <button
             type="button"
             onClick={connectWallet}
-            className="px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover min-h-[48px]"
+            className="px-4 py-2 rounded-lg bg-primary text-primary-contrast font-medium hover:bg-primary-hover min-h-[48px]"
           >
             Connect Wallet
           </button>
@@ -282,7 +282,7 @@ export const CreateProductPage: React.FC = () => {
         <button
           type="submit"
           disabled={txState.stage === 'submitting' || txState.stage === 'pending_consensus'}
-          className="mt-4 w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-white font-semibold text-lg hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
+          className="mt-4 w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-primary-contrast font-semibold text-lg hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
         >
           <PlusCircle className="w-5 h-5" />
           <span>{isConnected ? 'Deploy Coverage Pool' : 'Connect Wallet & Deploy'}</span>

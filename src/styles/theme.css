@@ -24,9 +24,9 @@
   --color-page: #171E19;
   --color-ink: #F7F5F0;
   --color-ink-muted: #A8B8AE;
-  --color-primary: #3D7558;
-  --color-primary-hover: #4C8C6B;
-  --color-primary-contrast: #FFFFFF;
+  --color-primary: #6EAF8C;
+  --color-primary-hover: #7FBD9C;
+  --color-primary-contrast: #111813;
   --color-sand: #202A23;
   --color-sand-border: #2C3A30;
   --color-clay: #D96E43;
@@ -35,7 +35,7 @@
   --color-sage-text: #74C28D;
   --color-brick: #E06666;
   --color-brick-bg: #331A1A;
-  --color-focus: #4C8C6B;
+  --color-focus: #6EAF8C;
 }
 
 html {

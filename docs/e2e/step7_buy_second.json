@@ -1,0 +1,15 @@
+{
+  "step": "7_buy_second_policy",
+  "caller": "0x18A35BaD91ca4D30D10D25E01026f6b2c202457A",
+  "function": "buy_policy",
+  "product_id": "2",
+  "policy_id": "6",
+  "coverage": 50,
+  "premium": 5,
+  "tx_hash": "0x50569ecf959f0d52e14045282e8050f1fb2887f6bc8914348b4f618c761c9f72",
+  "status_name": "ACCEPTED",
+  "result_name": "MAJORITY_AGREE",
+  "leader_result": "SUCCESS",
+  "classification": "SUCCESS",
+  "elapsed_seconds": 12.0
+}

@@ -59,7 +59,7 @@ export const CreditsPage: React.FC = () => {
             type="button"
             onClick={connectWallet}
             disabled={isConnecting}
-            className="px-6 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-hover min-h-[48px]"
+            className="px-6 py-3 rounded-lg bg-primary text-primary-contrast font-semibold hover:bg-primary-hover min-h-[48px]"
           >
             {isConnecting ? 'Connecting...' : 'Connect MetaMask'}
           </button>
@@ -103,7 +103,7 @@ export const CreditsPage: React.FC = () => {
               type="button"
               onClick={handleClaim}
               disabled={claiming || txState.stage === 'submitting' || txState.stage === 'pending_consensus'}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-white font-bold text-lg hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-primary-contrast font-bold text-lg hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
             >
               <Coins className="w-5 h-5 text-sand" />
               <span>Claim 1,000 Demo Credits</span>

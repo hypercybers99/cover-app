@@ -36,7 +36,7 @@ export const Header: React.FC = () => {
               className="flex items-center gap-2 text-ink font-bold text-2xl tracking-tight hover:opacity-90 min-h-[44px] items-center"
               aria-label="Cover Home"
             >
-              <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-primary text-primary-contrast flex items-center justify-center">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <span>Cover</span>
@@ -115,7 +115,7 @@ export const Header: React.FC = () => {
                 type="button"
                 onClick={connectWallet}
                 disabled={isConnecting}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-contrast font-medium hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
               >
                 <Wallet className="w-5 h-5" />
                 <span>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</span>
@@ -193,7 +193,7 @@ export const Header: React.FC = () => {
                   setMobileMenuOpen(false);
                 }}
                 disabled={isConnecting}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover min-h-[48px]"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-primary text-primary-contrast font-medium hover:bg-primary-hover min-h-[48px]"
               >
                 <Wallet className="w-5 h-5" />
                 <span>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</span>

@@ -1,6 +1,6 @@
 {
-  "write_attempts": 9,
-  "write_successes": 9,
+  "write_attempts": 10,
+  "write_successes": 10,
   "write_failures": 0,
   "writes": [
     {
@@ -68,6 +68,17 @@
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
       "elapsed_seconds": 5.48
+    },
+    {
+      "file": "step7_buy_second.json",
+      "step": "7_buy_second_policy",
+      "function": "buy_policy",
+      "tx_hash": "0x50569ecf959f0d52e14045282e8050f1fb2887f6bc8914348b4f618c761c9f72",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 12
     },
     {
       "file": "step7_cancel_policy.json",

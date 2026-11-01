@@ -59,7 +59,7 @@ export const ProductsPage: React.FC = () => {
           </button>
           <Link
             to="/products/new"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-hover min-h-[48px]"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-contrast font-semibold hover:bg-primary-hover min-h-[48px]"
           >
             <Plus className="w-5 h-5" />
             <span>Create Product</span>
@@ -114,7 +114,7 @@ export const ProductsPage: React.FC = () => {
           </p>
           <Link
             to="/products/new"
-            className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover min-h-[48px]"
+            className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-contrast font-medium hover:bg-primary-hover min-h-[48px]"
           >
             <Plus className="w-5 h-5" />
             <span>Create First Product</span>
@@ -176,7 +176,7 @@ export const ProductsPage: React.FC = () => {
                 {/* Action Button */}
                 <Link
                   to={`/products/${product.id}`}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover min-h-[48px]"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-contrast font-medium hover:bg-primary-hover min-h-[48px]"
                 >
                   <span>View Details & Buy</span>
                   <ExternalLink className="w-4 h-4" />

@@ -35,7 +35,7 @@ export const EvidencePage: React.FC = () => {
       {/* Title & Header */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-primary text-primary-contrast flex items-center justify-center">
             <FileText className="w-6 h-6" />
           </div>
           <h1 className="text-3xl font-extrabold text-ink">Contract Verification & Evidence</h1>
@@ -233,7 +233,7 @@ export const EvidencePage: React.FC = () => {
               type="button"
               onClick={() => setFilterTx('ALL')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                filterTx === 'ALL' ? 'bg-primary text-white' : 'bg-page text-ink'
+                filterTx === 'ALL' ? 'bg-primary text-primary-contrast' : 'bg-page text-ink'
               }`}
             >
               All ({TRANSACTION_MATRIX.length})
@@ -242,7 +242,7 @@ export const EvidencePage: React.FC = () => {
               type="button"
               onClick={() => setFilterTx('SUCCESS')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                filterTx === 'SUCCESS' ? 'bg-primary text-white' : 'bg-page text-ink'
+                filterTx === 'SUCCESS' ? 'bg-primary text-primary-contrast' : 'bg-page text-ink'
               }`}
             >
               Success
@@ -251,7 +251,7 @@ export const EvidencePage: React.FC = () => {
               type="button"
               onClick={() => setFilterTx('ERROR')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                filterTx === 'ERROR' ? 'bg-primary text-white' : 'bg-page text-ink'
+                filterTx === 'ERROR' ? 'bg-primary text-primary-contrast' : 'bg-page text-ink'
               }`}
             >
               Rejection Paths

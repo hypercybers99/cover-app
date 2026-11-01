@@ -195,7 +195,7 @@ export const TxStatusModal: React.FC<TxStatusModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-hover min-h-[48px]"
+              className="px-5 py-2.5 rounded-lg bg-primary text-primary-contrast font-semibold hover:bg-primary-hover min-h-[48px]"
             >
               Close
             </button>
