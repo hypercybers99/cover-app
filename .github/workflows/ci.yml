@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Build, Lint, Test & Browser Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Static Scans (Banned Words, Flat Styling, Contrast)
+        run: |
+          node scripts/scan_banned.mjs
+          node scripts/scan_gradients.mjs
+          node scripts/scan_contrast.mjs
+
+      - name: Typecheck & Production Build
+        run: npm run build
+
+      - name: Unit & Integration Tests (Vitest)
+        run: npm test
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E Tests
+        run: npx playwright test
+
+      - name: Run Browser Visual & Accessibility Audit
+        run: node scripts/run_browser_checks.mjs
