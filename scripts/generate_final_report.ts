@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 import { DEPLOYMENTS, NETWORK } from '../src/config/deployments.js';
 import { ERROR_MAPPINGS } from '../src/lib/errors.js';
 
@@ -25,6 +25,27 @@ const rawVerifyContracts = execSync('node scripts/verify_contracts.mjs', { cwd: 
 
 // 5. Read first 12 lines of README
 const readmeLines = fs.readFileSync(path.join(rootDir, 'README.md'), 'utf8').split('\n').slice(0, 12).join('\n');
+
+// 6. Query GitHub Actions CI run
+let ciRun = '';
+let ciJobs = '';
+try {
+  ciRun = execFileSync(
+    'gh',
+    ['api', 'repos/hypercybers99/cover-app/actions/runs/41282950726', '--jq', '{id,head_sha,status,conclusion,html_url}'],
+    { cwd: rootDir, encoding: 'utf8' }
+  ).trim();
+  ciJobs = execFileSync('gh', ['run', 'view', '--job=124778420767'], { cwd: rootDir, encoding: 'utf8' }).trim();
+} catch (e) {
+  ciRun = 'gh api query not available in current environment';
+  ciJobs = 'gh run view not available';
+}
+
+// 7. Git verification commands
+const revHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: rootDir, encoding: 'utf8' }).trim();
+const revOrigin = execFileSync('git', ['rev-parse', 'origin/main'], { cwd: rootDir, encoding: 'utf8' }).trim();
+const revTagV1 = execFileSync('git', ['rev-parse', 'cover-app-v1^{commit}'], { cwd: rootDir, encoding: 'utf8' }).trim();
+const gitStatusShort = execFileSync('git', ['status', '--short'], { cwd: rootDir, encoding: 'utf8' }).trim();
 
 // Build error mapping rows
 const errorRows = Object.entries(ERROR_MAPPINGS)
@@ -151,13 +172,39 @@ ${e2eRows}
 
 ## 8. GitHub Actions CI Verification
 
-Push-triggered CI run on GitHub Actions:
-- Workflow Run URL: \`https://github.com/hypercybers99/cover-app/actions\`
-- Job Steps: Checkout, Setup Node.js, Dependencies, Static Scans, Typecheck & Build, Unit Tests (Vitest), Playwright E2E Tests, Browser Visual & Accessibility Audit.
+Push-triggered CI run queried via GitHub API (\`gh api\`):
+
+\`\`\`json
+${ciRun}
+\`\`\`
+
+Completed job steps (\`gh run view\`):
+
+\`\`\`
+${ciJobs}
+\`\`\`
 
 ---
 
-## 9. Needed from the Owner
+## 9. Git Repository State Verification
+
+\`\`\`bash
+$ git rev-parse HEAD
+${revHead}
+
+$ git rev-parse origin/main
+${revOrigin}
+
+$ git rev-parse cover-app-v1^{commit}
+${revTagV1}
+
+$ git status --short
+${gitStatusShort || '(working tree clean)'}
+\`\`\`
+
+---
+
+## 10. Needed from the Owner
 
 1. **Vercel Production Deployment**:
    Run the following commands in the repository directory to deploy:
@@ -171,7 +218,7 @@ Push-triggered CI run on GitHub Actions:
 
 ---
 
-## 10. Deviations & What Was Not Measured
+## 11. Deviations & What Was Not Measured
 
 - **Vercel Production URL**: Not deployed yet; Vercel CLI requires interactive owner authentication.
 - **Contract Redeploy**: Contracts were NOT changed and NOT redeployed per strict instructions. Active contracts remain \`0x4d12...47e3\` and \`0x6Ad8...3724\`.

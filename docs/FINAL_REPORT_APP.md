@@ -1,11 +1,11 @@
 # FINAL_REPORT_APP: Cover Web Application
 
 - Repository: https://github.com/hypercybers99/cover-app
-- Head Commit: 2c5311eac633c8f57f2367a9a90c594c16dd9c53
+- Head Commit: 79ae87ec6e13092092347dacb8aa19cbf4c0d373
 - Release Tag: cover-app-v1b
 - Contract Source Repo: https://github.com/hypercybers99/cover-genlayer/tree/cover-v1-final (tag cover-v1-final, commit de8ca89)
 - Network: GenLayer Studionet (Chain ID 61999, RPC https://studio.genlayer.com/api)
-- Total Commits: 19
+- Total Commits: 20
 - Status: Preview
 
 ---
@@ -200,13 +200,67 @@ Total attempts: 10 | Successes: 10 | Failures: 0
 
 ## 8. GitHub Actions CI Verification
 
-Push-triggered CI run on GitHub Actions:
-- Workflow Run URL: `https://github.com/hypercybers99/cover-app/actions`
-- Job Steps: Checkout, Setup Node.js, Dependencies, Static Scans, Typecheck & Build, Unit Tests (Vitest), Playwright E2E Tests, Browser Visual & Accessibility Audit.
+Push-triggered CI run queried via GitHub API (`gh api`):
+
+```json
+{"conclusion":"success","head_sha":"79ae87ec6e13092092347dacb8aa19cbf4c0d373","html_url":"https://github.com/hypercybers99/cover-app/actions/runs/41282950726","id":41282950726,"status":"completed"}
+```
+
+Completed job steps (`gh run view`):
+
+```
+✓ main CI · 41282950726
+Triggered via push about 5 minutes ago
+
+✓ Build, Lint, Test & Browser Audit in 1m39s (ID 124778420767)
+  ✓ Set up job
+  ✓ Checkout Code
+  ✓ Setup Node.js
+  ✓ Install Dependencies
+  ✓ Static Scans (Banned Words, Flat Styling, Contrast)
+  ✓ Typecheck & Production Build
+  ✓ Unit & Integration Tests (Vitest)
+  ✓ Install Playwright Browsers
+  ✓ Run Playwright E2E Tests
+  ✓ Run Browser Visual & Accessibility Audit
+  ✓ Post Setup Node.js
+  ✓ Post Checkout Code
+  ✓ Complete job
+
+ANNOTATIONS
+! Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Build, Lint, Test & Browser Audit: .github#6
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build, Lint, Test & Browser Audit: .github#1
+
+
+To see the full job log, try: gh run view --log --job=124778420767
+View this run on GitHub: https://github.com/hypercybers99/cover-app/actions/runs/41282950726
+```
 
 ---
 
-## 9. Needed from the Owner
+## 9. Git Repository State Verification
+
+```bash
+$ git rev-parse HEAD
+79ae87ec6e13092092347dacb8aa19cbf4c0d373
+
+$ git rev-parse origin/main
+79ae87ec6e13092092347dacb8aa19cbf4c0d373
+
+$ git rev-parse cover-app-v1^{commit}
+89cd3cefb719f67084e34d7b4679b76a29892dda
+
+$ git status --short
+M docs/FINAL_REPORT_APP.md
+ M scripts/generate_final_report.ts
+```
+
+---
+
+## 10. Needed from the Owner
 
 1. **Vercel Production Deployment**:
    Run the following commands in the repository directory to deploy:
@@ -220,7 +274,7 @@ Push-triggered CI run on GitHub Actions:
 
 ---
 
-## 10. Deviations & What Was Not Measured
+## 11. Deviations & What Was Not Measured
 
 - **Vercel Production URL**: Not deployed yet; Vercel CLI requires interactive owner authentication.
 - **Contract Redeploy**: Contracts were NOT changed and NOT redeployed per strict instructions. Active contracts remain `0x4d12...47e3` and `0x6Ad8...3724`.
