@@ -31,7 +31,7 @@ export const EvidencePage: React.FC = () => {
   const pages = ['s1', 's2', 's3', 's4', 's5', 's7'];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-10">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-10 overflow-x-hidden">
       {/* Title & Header */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
@@ -93,7 +93,7 @@ export const EvidencePage: React.FC = () => {
         </div>
 
         {/* Superseded contract pair line - strictly formatted */}
-        <div className="pt-2 border-t border-sand-border text-xs text-ink-muted font-mono">
+        <div className="pt-2 border-t border-sand-border text-xs text-ink-muted font-mono break-all">
           Superseded pair: Cover 0x41f8c399e2709333AEAD1F8Ac0B1E5248eC288Bd, CoverGuard 0x85C0F67F1Cd82aBcCfABb289E6c215c78D17b3eF (superseded)
         </div>
 
@@ -111,7 +111,7 @@ export const EvidencePage: React.FC = () => {
       </div>
 
       {/* Balance Snapshots Across Matrix */}
-      <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4">
+      <div className="p-4 sm:p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4 max-w-full overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h2 className="text-xl font-bold text-ink">Conservation of Balance Invariant</h2>
@@ -122,7 +122,7 @@ export const EvidencePage: React.FC = () => {
           <DemoCreditNotice variant="inline" />
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-w-full">
           <table className="w-full text-left font-mono text-xs">
             <thead className="bg-page border-b border-sand-border">
               <tr>
@@ -165,13 +165,13 @@ export const EvidencePage: React.FC = () => {
       </div>
 
       {/* Robustness Iterations Side-by-Side Table */}
-      <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4">
+      <div className="p-4 sm:p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4 max-w-full overflow-hidden">
         <h2 className="text-xl font-bold text-ink">Robustness Iteration Comparison</h2>
         <p className="text-xs text-ink-muted">
           60-run evaluation across 6 status page topologies (s1, s2, s3, s4, s5, s7) testing parser integrity and multi-validator consensus decision agreement.
         </p>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-w-full">
           <table className="w-full text-left font-mono text-xs">
             <thead className="bg-page border-b border-sand-border">
               <tr>
@@ -220,7 +220,7 @@ export const EvidencePage: React.FC = () => {
       </div>
 
       {/* 39-Step Live Transaction Matrix */}
-      <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4">
+      <div className="p-4 sm:p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4 max-w-full overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-ink">39-Step Live Transaction Matrix</h2>
@@ -259,7 +259,7 @@ export const EvidencePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto max-h-[500px]">
+        <div className="overflow-x-auto max-h-[500px] max-w-full">
           <table className="w-full text-left font-mono text-xs">
             <thead className="bg-page border-b border-sand-border sticky top-0">
               <tr>

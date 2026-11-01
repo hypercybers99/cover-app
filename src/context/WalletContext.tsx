@@ -193,16 +193,19 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           },
           onTick: () => {},
         });
-        if (res.check.status === 'SUCCESS') {
+        const classification = res.check?.classification || (res.check?.isSuccess ? 'SUCCESS' : 'FAILED');
+        const errorMsg = res.check?.decodedError || res.check?.summary || 'Transaction failed';
+
+        if (classification === 'SUCCESS') {
           if (onState) onState({ stage: 'finalized', txHash: res.txHash });
           await refreshBalance();
           return { status: 'SUCCESS', ...res };
-        } else if (res.check.status === 'USER_ERROR') {
+        } else if (classification === 'USER_ERROR') {
           if (onState)
             onState({
               stage: 'user_error',
               txHash: res.txHash,
-              errorMessage: res.check.message,
+              errorMessage: errorMsg,
             });
           return { status: 'USER_ERROR', ...res };
         } else {
@@ -210,7 +213,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             onState({
               stage: 'failed',
               txHash: res.txHash,
-              errorMessage: res.check.message,
+              errorMessage: errorMsg,
             });
           return { status: 'FAILED', ...res };
         }

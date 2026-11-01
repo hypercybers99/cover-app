@@ -281,11 +281,11 @@ export const CreateProductPage: React.FC = () => {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={!isConnected || txState.stage === 'submitting' || txState.stage === 'pending_consensus'}
+          disabled={txState.stage === 'submitting' || txState.stage === 'pending_consensus'}
           className="mt-4 w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-white font-semibold text-lg hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
         >
           <PlusCircle className="w-5 h-5" />
-          <span>Deploy Coverage Pool</span>
+          <span>{isConnected ? 'Deploy Coverage Pool' : 'Connect Wallet & Deploy'}</span>
         </button>
 
         <div className="flex justify-end">

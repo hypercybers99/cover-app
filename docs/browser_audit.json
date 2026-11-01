@@ -1,0 +1,83 @@
+{
+  "timestamp": "2026-11-01T04:57:16.477Z",
+  "routesAudited": 8,
+  "consoleErrors": [],
+  "axeViolations": [],
+  "overflowViolations": [],
+  "typographyChecks": [
+    {
+      "route": "/",
+      "fontSizePx": 18,
+      "pass": true
+    },
+    {
+      "route": "/products",
+      "fontSizePx": 18,
+      "pass": true
+    },
+    {
+      "route": "/products/new",
+      "fontSizePx": 18,
+      "pass": true
+    },
+    {
+      "route": "/guard",
+      "fontSizePx": 18,
+      "pass": true
+    },
+    {
+      "route": "/credits",
+      "fontSizePx": 18,
+      "pass": true
+    },
+    {
+      "route": "/evidence",
+      "fontSizePx": 18,
+      "pass": true
+    },
+    {
+      "route": "/limits",
+      "fontSizePx": 18,
+      "pass": true
+    },
+    {
+      "route": "/not-found",
+      "fontSizePx": 18,
+      "pass": true
+    }
+  ],
+  "screenshots": [
+    "docs/screens/landing-desktop-light.png",
+    "docs/screens/landing-desktop-dark.png",
+    "docs/screens/landing-mobile-light.png",
+    "docs/screens/landing-mobile-dark.png",
+    "docs/screens/products-desktop-light.png",
+    "docs/screens/products-desktop-dark.png",
+    "docs/screens/products-mobile-light.png",
+    "docs/screens/products-mobile-dark.png",
+    "docs/screens/products-new-desktop-light.png",
+    "docs/screens/products-new-desktop-dark.png",
+    "docs/screens/products-new-mobile-light.png",
+    "docs/screens/products-new-mobile-dark.png",
+    "docs/screens/coverguard-desktop-light.png",
+    "docs/screens/coverguard-desktop-dark.png",
+    "docs/screens/coverguard-mobile-light.png",
+    "docs/screens/coverguard-mobile-dark.png",
+    "docs/screens/credits-desktop-light.png",
+    "docs/screens/credits-desktop-dark.png",
+    "docs/screens/credits-mobile-light.png",
+    "docs/screens/credits-mobile-dark.png",
+    "docs/screens/evidence-desktop-light.png",
+    "docs/screens/evidence-desktop-dark.png",
+    "docs/screens/evidence-mobile-light.png",
+    "docs/screens/evidence-mobile-dark.png",
+    "docs/screens/limits-desktop-light.png",
+    "docs/screens/limits-desktop-dark.png",
+    "docs/screens/limits-mobile-light.png",
+    "docs/screens/limits-mobile-dark.png",
+    "docs/screens/not-found-desktop-light.png",
+    "docs/screens/not-found-desktop-dark.png",
+    "docs/screens/not-found-mobile-light.png",
+    "docs/screens/not-found-mobile-dark.png"
+  ]
+}
