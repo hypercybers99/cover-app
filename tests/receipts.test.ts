@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifyReceipt } from '../src/lib/receipts';
+import { classifyReceipt, extractProductIdFromReceipt } from '../src/lib/receipts';
 
 describe('Receipt Classification Combinations', () => {
   const cases = [
@@ -75,4 +75,36 @@ describe('Receipt Classification Combinations', () => {
       expect(res.isSuccess).toBe(c.expectedSuccess);
     });
   }
+
+  it('extracts product ID from receipt leader result readable payload', () => {
+    const mockReceipt = {
+      status_name: 'ACCEPTED',
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: {
+        leader_receipt: [
+          {
+            execution_result: 'SUCCESS',
+            result: {
+              status: 'return',
+              payload: {
+                readable: '"42"',
+              },
+            },
+          },
+        ],
+      },
+    };
+    expect(extractProductIdFromReceipt(mockReceipt)).toBe('42');
+  });
+
+  it('returns null if leader receipt has no readable return payload', () => {
+    const mockReceipt = {
+      status_name: 'ACCEPTED',
+      result_name: 'MAJORITY_AGREE',
+      consensus_data: {
+        leader_receipt: [],
+      },
+    };
+    expect(extractProductIdFromReceipt(mockReceipt)).toBeNull();
+  });
 });

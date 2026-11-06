@@ -24,6 +24,24 @@ export function decodeLeaderPayload(receipt: any): string {
   }
 }
 
+export function extractProductIdFromReceipt(receipt: any): string | null {
+  const readable = receipt?.consensus_data?.leader_receipt?.[0]?.result?.payload?.readable;
+  if (readable !== undefined && readable !== null) {
+    try {
+      const parsed = JSON.parse(readable);
+      if (parsed !== undefined && parsed !== null) return String(parsed).trim();
+    } catch {
+      const cleaned = String(readable).replace(/^["']|["']$/g, '').trim();
+      if (cleaned) return cleaned;
+    }
+  }
+  const res = receipt?.consensus_data?.leader_receipt?.[0]?.result;
+  if (typeof res === 'string' && /^\d+$/.test(res.trim())) {
+    return res.trim();
+  }
+  return null;
+}
+
 export function classifyReceipt(receipt: any): ReceiptCheckResult {
   const statusName = receipt?.status_name || receipt?.status || 'UNKNOWN';
   const resultName = receipt?.result_name || receipt?.result || 'UNKNOWN';

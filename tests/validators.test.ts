@@ -1,11 +1,18 @@
 import { describe, it, expect } from 'vitest';
+import fs from 'fs';
+import path from 'path';
 import {
   validateProductUrl,
+  validateGitHubUrl,
   validateProductName,
   validateRuleText,
   validateThresholds,
   validatePremiumRate,
   validatePositiveAmount,
+  validateCreateProductInput,
+  DECISION_RULE_V2,
+  ALLOWED_PREFIX,
+  generateDecisionRuleSentence,
 } from '../src/lib/validators';
 
 describe('Table-Driven Contract Rule Validators', () => {
@@ -124,5 +131,71 @@ describe('Table-Driven Contract Rule Validators', () => {
         if (!c.valid) expect(res.error).toBe(c.error);
       });
     }
+  });
+
+  describe('validateGitHubUrl & ALLOWED_PREFIX Parity', () => {
+    it('accepts valid GitHub raw urls ending in .md or .html', () => {
+      const validMd = 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/main/status-s0.md';
+      const validHtml = 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/main/status-s5.html';
+      expect(validateGitHubUrl(validMd).valid).toBe(true);
+      expect(validateGitHubUrl(validHtml).valid).toBe(true);
+    });
+
+    it('rejects GitHub raw urls not ending in .md or .html', () => {
+      const invalid = 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/main/status-s0.json';
+      const res = validateGitHubUrl(invalid);
+      expect(res.valid).toBe(false);
+      expect(res.error).toBe('GitHub raw source URL must end with .md or .html');
+    });
+
+    it('allows non-github https endpoints', () => {
+      const normalHttps = 'https://status.nimbus.example/status.md';
+      expect(validateGitHubUrl(normalHttps).valid).toBe(true);
+    });
+  });
+
+  describe('DECISION_RULE_V2 Byte-for-Byte Equality', () => {
+    it('verifies DECISION_RULE_V2 in TypeScript equals Cover.py DECISION_RULE_V2 exactly', () => {
+      const contractPath = path.resolve(__dirname, '../contracts/Cover.py');
+      const contractCode = fs.readFileSync(contractPath, 'utf8');
+      const match = contractCode.match(/DECISION_RULE_V2\s*=\s*"([^"]+)"/);
+      expect(match).not.toBeNull();
+      const pythonRule = match![1];
+      expect(DECISION_RULE_V2).toBe(pythonRule);
+    });
+
+    it('generates evaluated rule sentence correctly', () => {
+      const sentence = generateDecisionRuleSentence(30, 15);
+      expect(sentence).toBe(
+        'OUTAGE >= 30 minutes: 100% | OUTAGE >= 15: 50% | DEGRADED >= 30: 25% | otherwise 0%; unreadable or unclear: REVIEW'
+      );
+    });
+  });
+
+  describe('validateCreateProductInput (V2 without ruleText or 25% inputs)', () => {
+    it('validates compliant V2 product inputs successfully', () => {
+      const res = validateCreateProductInput({
+        name: 'Nimbus Cloud Cover',
+        sourceUrl: 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/main/status.md',
+        payout100Threshold: 30,
+        payout50Threshold: 15,
+        premiumBps: 500,
+        initialDeposit: 400,
+      });
+      expect(res.valid).toBe(true);
+    });
+
+    it('rejects invalid thresholds', () => {
+      const res = validateCreateProductInput({
+        name: 'Nimbus Cloud Cover',
+        sourceUrl: 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/main/status.md',
+        payout100Threshold: 15,
+        payout50Threshold: 30, // Invalid: half > full
+        premiumBps: 500,
+        initialDeposit: 400,
+      });
+      expect(res.valid).toBe(false);
+      expect(res.error).toBe('bad thresholds');
+    });
   });
 });

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
-import { getBalanceOf } from '../services/readClient';
+import { getBalanceOf, getStats } from '../services/readClient';
 import {
   ensureStudionetChain,
   getClientForAccount,
@@ -13,6 +13,7 @@ import {
   cancelPolicy,
   attestCoverage,
 } from '../services/walletClient';
+import { extractProductIdFromReceipt } from '../lib/receipts';
 import { createAccount } from 'genlayer-js';
 import type { TxState } from '../types/contract';
 
@@ -21,10 +22,8 @@ interface WalletClientOps {
   createProduct: (
     name: string,
     url: string,
-    ruleText: string,
-    thresh100: number,
-    thresh50: number,
-    thresh25: number,
+    minFull: number,
+    minHalf: number,
     premiumBps: number,
     deposit?: number,
     onState?: (s: TxState) => void
@@ -32,7 +31,7 @@ interface WalletClientOps {
   fundPool: (productId: number | string, amount: number, onState?: (s: TxState) => void) => Promise<any>;
   withdrawPool: (productId: number | string, amount: number, onState?: (s: TxState) => void) => Promise<any>;
   updateSourceUrl: (productId: number | string, newUrl: string, onState?: (s: TxState) => void) => Promise<any>;
-  buyPolicy: (productId: number | string, coverage: number, days?: number, onState?: (s: TxState) => void) => Promise<any>;
+  buyPolicy: (productId: number | string, coverage: number, onState?: (s: TxState) => void) => Promise<any>;
   settlePolicy: (policyId: number | string, onState?: (s: TxState) => void) => Promise<any>;
   cancelPolicy: (policyId: number | string, onState?: (s: TxState) => void) => Promise<any>;
   attestCoverGuard: (policyId: number | string, onState?: (s: TxState) => void) => Promise<any>;
@@ -237,10 +236,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       createProduct: async (
         name,
         url,
-        ruleText,
-        thresh100,
-        thresh50,
-        _thresh25,
+        minFull,
+        minHalf,
         premiumBps,
         deposit,
         onState
@@ -251,19 +248,54 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               client,
               name,
               url,
-              ruleText,
-              thresh100,
-              thresh50,
+              minFull,
+              minHalf,
               premiumBps,
               cb
             ),
           onState
         );
-        if (createRes.status === 'SUCCESS' && deposit && deposit > 0) {
-          // If initial deposit specified, fund product #1 or newly created product
-          try {
-            await fundProduct(client, '1', deposit);
-          } catch {}
+        if (createRes.status === 'SUCCESS') {
+          // Extract created product ID from receipt leader data
+          let newProductId = extractProductIdFromReceipt(createRes.receipt);
+          if (!newProductId) {
+            // Labeled fallback: query getStats to find new product ID
+            try {
+              const stats = await getStats();
+              const derivedId = String(parseInt(stats.next_product || '1', 10) - 1);
+              if (parseInt(derivedId, 10) >= 1) {
+                newProductId = derivedId;
+              }
+            } catch (queryErr) {
+              console.warn('Fallback product ID query from stats failed:', queryErr);
+            }
+          }
+
+          if (deposit && deposit > 0 && newProductId) {
+            // Do not swallow funding errors
+            try {
+              const fundRes = await wrapTx(
+                (cb) => fundProduct(client, newProductId!, deposit, cb),
+                onState
+              );
+              if (fundRes.status !== 'SUCCESS') {
+                return {
+                  ...createRes,
+                  status: 'PARTIAL_FUND_FAILED',
+                  productId: newProductId,
+                  fundError: fundRes.check?.decodedError || fundRes.check?.summary || 'Initial deposit funding failed',
+                };
+              }
+            } catch (fundErr: any) {
+              return {
+                ...createRes,
+                status: 'PARTIAL_FUND_FAILED',
+                productId: newProductId,
+                fundError: fundErr?.message || 'Initial deposit funding failed',
+              };
+            }
+          }
+          return { ...createRes, productId: newProductId };
         }
         return createRes;
       },
@@ -273,7 +305,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         wrapTx((cb) => withdrawUnreserved(client, String(productId), amount, cb), onState),
       updateSourceUrl: (productId, newUrl, onState) =>
         wrapTx((cb) => updateSource(client, String(productId), newUrl, cb), onState),
-      buyPolicy: (productId, coverage, _days, onState) =>
+      buyPolicy: (productId, coverage, onState) =>
         wrapTx((cb) => buyPolicy(client, String(productId), coverage, cb), onState),
       settlePolicy: (policyId, onState) =>
         wrapTx((cb) => settlePolicy(client, String(policyId), cb), onState),

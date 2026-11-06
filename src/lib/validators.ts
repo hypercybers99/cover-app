@@ -3,6 +3,57 @@ export interface ValidationResult {
   error?: string;
 }
 
+export const DECISION_RULE_V2 =
+  "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW";
+
+export const COVERAGE_TERM_V2 = "OPEN_UNTIL_SETTLED_OR_CANCELLED";
+
+export const ALLOWED_PREFIX = "https://raw.githubusercontent.com/";
+export const ALLOWED_GITHUB_PREFIX = ALLOWED_PREFIX;
+
+export const GITHUB_FIXTURE_PRESETS = [
+  {
+    code: 's0',
+    label: 's0: Operational Baseline',
+    url: 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md',
+    desc: 'Operational baseline page. Recommended for initial product creation so policies pass the inception gate.',
+  },
+  {
+    code: 's1',
+    label: 's1: Major Outage 75 min (100% Payout)',
+    url: 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s1-outage-75.md',
+    desc: 'Major outage lasting 75 minutes. Outage exceeds min_full threshold (100% payout upon settlement).',
+  },
+  {
+    code: 's2',
+    label: 's2: Partial Outage 35 min (50% Payout)',
+    url: 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s2-outage-35.md',
+    desc: 'Partial outage lasting 35 minutes. Exceeds min_half threshold (50% payout upon settlement).',
+  },
+  {
+    code: 's3',
+    label: 's3: Minor Outage 20 min (0% Payout)',
+    url: 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s3-outage-20.md',
+    desc: 'Minor outage lasting 20 minutes. Below min_half threshold (0% payout).',
+  },
+  {
+    code: 's4',
+    label: 's4: Degraded 90 min (25% Payout)',
+    url: 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s4-degraded-90.md',
+    desc: 'Performance degraded lasting 90 minutes. Exceeds min_full threshold for degradation (25% payout).',
+  },
+  {
+    code: 's5',
+    label: 's5: Reformatted HTML (Operational)',
+    url: 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s5-operational-reformatted.html',
+    desc: 'Reformatted HTML operational status page in identical directory.',
+  },
+];
+
+export function generateDecisionRuleSentence(minFull: number, minHalf: number): string {
+  return `OUTAGE >= ${minFull} minutes: 100% | OUTAGE >= ${minHalf}: 50% | DEGRADED >= ${minFull}: 25% | otherwise 0%; unreadable or unclear: REVIEW`;
+}
+
 export function isPureAscii(str: string): boolean {
   for (let i = 0; i < str.length; i++) {
     if (str.charCodeAt(i) > 127) {
@@ -13,12 +64,9 @@ export function isPureAscii(str: string): boolean {
 }
 
 export function isIpLiteral(host: string): boolean {
-  // IPv4 regex
   const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
   if (ipv4Regex.test(host)) return true;
-  // IPv6 check: contains colon and hex chars
   if (host.includes(':')) return true;
-  // Bracketed IPv6 e.g. [::1]
   if (host.startsWith('[') && host.endsWith(']')) return true;
   return false;
 }
@@ -65,6 +113,19 @@ export function validateProductUrl(urlStr: string): ValidationResult {
   }
 }
 
+export function validateGitHubUrl(urlStr: string): ValidationResult {
+  const baseRes = validateProductUrl(urlStr);
+  if (!baseRes.valid) return baseRes;
+
+  if (urlStr.startsWith(ALLOWED_PREFIX)) {
+    const cleanPath = urlStr.split('?')[0];
+    if (!cleanPath.endsWith('.md') && !cleanPath.endsWith('.html')) {
+      return { valid: false, error: 'GitHub raw source URL must end with .md or .html' };
+    }
+  }
+  return { valid: true };
+}
+
 export function validateProductName(name: string): ValidationResult {
   if (!name || name.length < 3 || name.length > 60 || !isPureAscii(name)) {
     return { valid: false, error: 'bad name' };
@@ -109,21 +170,16 @@ export function validatePositiveAmount(amount: number): ValidationResult {
 export function validateCreateProductInput(input: {
   name: string;
   sourceUrl: string;
-  ruleText: string;
   payout100Threshold: number;
   payout50Threshold: number;
-  payout25Threshold?: number;
   premiumBps: number;
   initialDeposit?: number;
 }): ValidationResult {
   const nameRes = validateProductName(input.name);
   if (!nameRes.valid) return nameRes;
 
-  const urlRes = validateProductUrl(input.sourceUrl);
+  const urlRes = validateGitHubUrl(input.sourceUrl);
   if (!urlRes.valid) return urlRes;
-
-  const ruleRes = validateRuleText(input.ruleText);
-  if (!ruleRes.valid) return ruleRes;
 
   const threshRes = validateThresholds(input.payout100Threshold, input.payout50Threshold);
   if (!threshRes.valid) return threshRes;
@@ -169,6 +225,5 @@ export function validateWithdrawPoolInput(
 }
 
 export function validateUpdateSourceUrlInput(urlStr: string): ValidationResult {
-  return validateProductUrl(urlStr);
+  return validateGitHubUrl(urlStr);
 }
-

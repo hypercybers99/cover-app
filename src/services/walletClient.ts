@@ -130,7 +130,6 @@ export async function createProduct(
   client: any,
   name: string,
   url: string,
-  ruleText: string,
   minFull: number,
   minHalf: number,
   premiumBps: number,
@@ -140,7 +139,7 @@ export async function createProduct(
     client,
     COVER_ADDRESS,
     'create_product',
-    [name.trim(), url.trim(), ruleText.trim(), minFull, minHalf, premiumBps],
+    [name.trim(), url.trim(), minFull, minHalf, premiumBps],
     callbacks
   );
 }
