@@ -12,8 +12,6 @@ import type {
   Product,
   Policy,
   Limits,
-  Outcome,
-  Gate,
 } from '../types/contract';
 
 export const publicClient = createClient({
@@ -181,6 +179,7 @@ export async function getStats(): Promise<PlatformStats> {
   } catch (err) {
     console.warn('Error reading stats:', err);
     return {
+      schema_version: '1',
       total_minted: '0',
       next_product: '1',
       next_policy: '1',
@@ -228,9 +227,8 @@ export async function isCovered(holderAddress: string, policyId: string): Promis
     return {
       covered: 'false',
       reason: 'ERROR',
-      policy_status: '',
       coverage: '0',
-      product_id: '',
+      policy_id: policyId,
     };
   }
 }

@@ -8,17 +8,25 @@ import {
   AlertCircle,
   ShoppingCart,
   Lock,
+  History,
+  CheckCircle2,
 } from 'lucide-react';
-import { CoverReadClient } from '../services/readClient';
+import { CoverReadClient, quotePremium } from '../services/readClient';
 import { useWallet } from '../context/WalletContext';
 import { TxStatusModal } from '../components/TxStatusModal';
 import { DemoCreditNotice } from '../components/DemoCreditNotice';
 import type { Product, Policy, TxState } from '../types/contract';
-import { validateBuyPolicyInput, validateFundPoolInput, validateWithdrawPoolInput, validateUpdateSourceUrlInput } from '../lib/validators';
+import {
+  validateBuyPolicyInput,
+  validateFundPoolInput,
+  validateWithdrawPoolInput,
+  validateUpdateSourceUrlInput,
+  generateDecisionRuleSentence,
+} from '../lib/validators';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const productId = Number(id);
+  const productId = String(id);
 
   const { address, isConnected, walletClient } = useWallet();
 
@@ -27,14 +35,13 @@ export const ProductDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Buy Form State
+  // Buy Form State (No duration or days - open until settled or cancelled)
   const [buyCoverage, setBuyCoverage] = useState(100);
-  const [buyDays, setBuyDays] = useState(30);
   const [quotedPremium, setQuotedPremium] = useState<number | null>(null);
   const [buyError, setBuyError] = useState<string | null>(null);
 
-  // Creator Action States
-  const [fundAmount, setFundAmount] = useState(50);
+  // Underwriter Action States
+  const [fundAmount, setFundAmount] = useState(100);
   const [fundError, setFundError] = useState<string | null>(null);
 
   const [withdrawAmount, setWithdrawAmount] = useState(50);
@@ -49,7 +56,7 @@ export const ProductDetailPage: React.FC = () => {
   const readClient = useMemo(() => new CoverReadClient(), []);
 
   const loadData = async () => {
-    if (isNaN(productId)) return;
+    if (!productId) return;
     setLoading(true);
     setError(null);
     try {
@@ -60,7 +67,7 @@ export const ProductDetailPage: React.FC = () => {
       setProduct(prod);
       setPolicies(pols);
       if (prod) {
-        setNewSourceUrl(prod.source_url);
+        setNewSourceUrl(prod.url);
       }
     } catch (err: any) {
       console.error('Failed to load product details:', err);
@@ -77,15 +84,13 @@ export const ProductDetailPage: React.FC = () => {
   // Real-time Premium Calculation
   useEffect(() => {
     let active = true;
-    if (!product || isNaN(productId) || buyCoverage <= 0 || buyDays <= 0) {
+    if (!product || buyCoverage <= 0) {
       setQuotedPremium(null);
       return;
     }
-
-    readClient
-      .quotePremium(productId, buyCoverage, buyDays)
-      .then((quote) => {
-        if (active) setQuotedPremium(quote);
+    quotePremium(buyCoverage, product.premium_bps)
+      .then((prem) => {
+        if (active) setQuotedPremium(prem);
       })
       .catch(() => {
         if (active) setQuotedPremium(null);
@@ -94,7 +99,7 @@ export const ProductDetailPage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [productId, buyCoverage, buyDays, product, readClient]);
+  }, [productId, buyCoverage, product]);
 
   const isCreator =
     isConnected &&
@@ -104,24 +109,23 @@ export const ProductDetailPage: React.FC = () => {
 
   const availableLiquidity = product ? Math.max(0, product.pool_balance - product.reserved) : 0;
 
-  // Handlers
   const handleBuy = async (e: React.FormEvent) => {
     e.preventDefault();
     setBuyError(null);
 
-    const val = validateBuyPolicyInput(buyCoverage, buyDays, availableLiquidity);
+    const val = validateBuyPolicyInput(buyCoverage, undefined, availableLiquidity);
     if (!val.valid) {
-      setBuyError(val.error || 'Invalid buy parameters');
+      setBuyError(val.error || 'Invalid coverage request.');
       return;
     }
 
-    if (!walletClient) {
-      setBuyError('Wallet not connected');
+    if (!walletClient || !isConnected) {
+      setBuyError('Connect wallet to buy policy.');
       return;
     }
 
-    setTxTitle('Purchasing Parametric Policy');
-    const res = await walletClient.buyPolicy(productId, buyCoverage, buyDays, setTxState);
+    setTxTitle('Purchasing Protection Policy');
+    const res = await walletClient.buyPolicy(productId, buyCoverage, setTxState);
     if (res.status === 'SUCCESS') {
       await loadData();
     }
@@ -133,12 +137,16 @@ export const ProductDetailPage: React.FC = () => {
 
     const val = validateFundPoolInput(fundAmount);
     if (!val.valid) {
-      setFundError(val.error || 'Invalid fund amount');
+      setFundError(val.error || 'Invalid deposit amount.');
       return;
     }
 
-    if (!walletClient) return;
-    setTxTitle('Adding Pool Liquidity');
+    if (!walletClient || !isConnected) {
+      setFundError('Connect wallet first.');
+      return;
+    }
+
+    setTxTitle('Funding Product Pool');
     const res = await walletClient.fundPool(productId, fundAmount, setTxState);
     if (res.status === 'SUCCESS') {
       await loadData();
@@ -151,12 +159,16 @@ export const ProductDetailPage: React.FC = () => {
 
     const val = validateWithdrawPoolInput(withdrawAmount, availableLiquidity);
     if (!val.valid) {
-      setWithdrawError(val.error || 'Invalid withdrawal amount');
+      setWithdrawError(val.error || 'Invalid withdrawal amount.');
       return;
     }
 
-    if (!walletClient) return;
-    setTxTitle('Withdrawing Pool Liquidity');
+    if (!walletClient || !isConnected) {
+      setWithdrawError('Connect wallet first.');
+      return;
+    }
+
+    setTxTitle('Withdrawing Unreserved Capital');
     const res = await walletClient.withdrawPool(productId, withdrawAmount, setTxState);
     if (res.status === 'SUCCESS') {
       await loadData();
@@ -169,12 +181,16 @@ export const ProductDetailPage: React.FC = () => {
 
     const val = validateUpdateSourceUrlInput(newSourceUrl);
     if (!val.valid) {
-      setSourceError(val.error || 'Invalid URL');
+      setSourceError(val.error || 'Invalid source URL.');
       return;
     }
 
-    if (!walletClient) return;
-    setTxTitle('Updating Source URL');
+    if (!walletClient || !isConnected) {
+      setSourceError('Connect wallet first.');
+      return;
+    }
+
+    setTxTitle('Updating Product Evidence Source');
     const res = await walletClient.updateSourceUrl(productId, newSourceUrl, setTxState);
     if (res.status === 'SUCCESS') {
       await loadData();
@@ -183,16 +199,16 @@ export const ProductDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 flex flex-col items-center gap-4">
+      <div className="max-w-7xl mx-auto px-4 py-16 flex flex-col items-center gap-4">
         <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-ink-muted">Loading product #{productId}...</span>
+        <span className="text-ink-muted">Reading product #{productId}...</span>
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12 flex flex-col items-center gap-4 text-center">
+      <div className="max-w-2xl mx-auto px-4 py-12 flex flex-col items-center gap-4 text-center">
         <AlertCircle className="w-12 h-12 text-brick" />
         <h2 className="text-2xl font-bold text-ink">Product Not Found</h2>
         <p className="text-ink-muted">{error || `Product #${productId} does not exist.`}</p>
@@ -207,9 +223,11 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
+  const updateCount = Math.max(0, (product.source_history?.length || 1) - 1);
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
-      {/* Top Navigation */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+      {/* Back Link */}
       <div>
         <Link
           to="/products"
@@ -220,133 +238,155 @@ export const ProductDetailPage: React.FC = () => {
         </Link>
       </div>
 
-      {/* Product Overview Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-lg bg-sand border border-sand-border">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded bg-page text-xs font-mono uppercase text-ink-muted border border-sand-border">
-              Product #{product.id}
-            </span>
-            {isCreator && (
-              <span className="px-2.5 py-0.5 rounded bg-sage text-xs font-semibold text-sage-text border border-primary/20">
-                You are the Creator
+      {/* Main Product Header Card */}
+      <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-extrabold text-ink">{product.name}</h1>
+              <span className="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-page text-ink-muted border border-sand-border">
+                Product #{product.id}
               </span>
-            )}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-ink-muted">
+              <span>Creator:</span>
+              <span className="font-mono text-xs text-ink">{product.creator}</span>
+            </div>
           </div>
-          <h1 className="text-3xl font-extrabold text-ink">{product.name}</h1>
-          <p className="font-mono text-xs text-ink-muted break-all">
-            Monitored Source: <a href={product.source_url} target="_blank" rel="noreferrer" className="text-primary underline inline-flex items-center gap-1">{product.source_url} <ExternalLink className="w-3 h-3" /></a>
-          </p>
+          <DemoCreditNotice variant="inline" />
         </div>
 
-        {/* Pool Stat Badges */}
-        <div className="grid grid-cols-3 gap-3 text-center font-mono bg-page p-3 rounded-lg border border-sand-border shrink-0">
-          <div>
-            <div className="text-[11px] text-ink-muted uppercase font-sans">Pool Total</div>
-            <div className="text-lg font-bold text-ink">{product.pool_balance} CR</div>
+        {/* Source URL Display with External Link */}
+        <div className="flex flex-col gap-1 text-xs font-mono pt-3 border-t border-sand-border">
+          <span className="font-sans font-semibold text-ink-muted">Active Evidence Source URL:</span>
+          <a
+            href={product.url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-primary hover:underline break-all flex items-center gap-1.5 text-sm"
+          >
+            <span>{product.url}</span>
+            <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+          </a>
+        </div>
+
+        {/* Source Update History Badge */}
+        {updateCount > 0 ? (
+          <div className="p-3.5 rounded-lg bg-page border border-primary/30 flex items-start gap-3">
+            <History className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-1 text-xs">
+              <span className="font-semibold text-ink">
+                Source updated {updateCount} {updateCount === 1 ? 'time' : 'times'}. Policies bought before an update remain bound to their purchase-time source.
+              </span>
+              <div className="mt-1 flex flex-col gap-1 font-mono text-[11px] text-ink-muted">
+                {product.source_history.map((url, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <span className="px-1.5 py-0.5 rounded bg-sand font-bold">
+                      {idx === product.source_history.length - 1 ? 'Current' : `v${idx + 1}`}
+                    </span>
+                    <span className="break-all">{url}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div>
-            <div className="text-[11px] text-ink-muted uppercase font-sans">Reserved</div>
-            <div className="text-lg font-bold text-clay">{product.reserved} CR</div>
+        ) : (
+          <div className="text-xs text-ink-muted flex items-center gap-2 font-mono">
+            <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+            <span>Source unchanged from inception terms.</span>
           </div>
-          <div>
-            <div className="text-[11px] text-ink-muted uppercase font-sans">Available</div>
-            <div className="text-lg font-bold text-primary">{availableLiquidity} CR</div>
+        )}
+
+        {/* High-level Pool Capital Metrics */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-sand-border font-mono">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-ink-muted font-sans">Pool Capital</span>
+            <span className="text-xl font-bold text-ink">{product.pool_balance} CR</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-ink-muted font-sans">Reserved (Active)</span>
+            <span className="text-xl font-bold text-clay">{product.reserved} CR</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-ink-muted font-sans">Free Underwriting</span>
+            <span className="text-xl font-bold text-primary">{availableLiquidity} CR</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-ink-muted font-sans">Policies Issued</span>
+            <span className="text-xl font-bold text-ink">{product.policy_count}</span>
           </div>
         </div>
       </div>
 
-      {/* Main Grid: Purchase Cover & Product Specs */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Purchase Policy Form */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-ink flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-primary" />
-                <span>Purchase Parametric Cover</span>
-              </h2>
-              <DemoCreditNotice variant="inline" />
+      {/* Main Grid: Buy Policy + Policies Table vs Settlement Specs + Liquidity Controls */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column: Purchase Form & Policies */}
+        <div className="flex flex-col gap-6">
+          {/* Purchase Cover Form */}
+          <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-5">
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-bold text-ink">Buy Coverage</h2>
             </div>
 
             {buyError && (
-              <div className="p-3 rounded-lg bg-brick-bg border border-brick text-brick text-sm flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{buyError}</span>
+              <div className="p-3 rounded bg-brick-bg border border-brick text-brick text-xs">
+                {buyError}
               </div>
             )}
 
-            <form onSubmit={handleBuy} className="flex flex-col gap-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="buyCoverage" className="text-sm font-semibold text-ink">
-                    Desired Coverage (Demo Credits)
-                  </label>
-                  <input
-                    id="buyCoverage"
-                    type="number"
-                    min="1"
-                    max={availableLiquidity}
-                    value={buyCoverage}
-                    onChange={(e) => setBuyCoverage(Number(e.target.value))}
-                    className="px-4 py-2.5 rounded-lg border border-sand-border bg-page text-ink font-mono"
-                  />
-                  <span className="text-xs text-ink-muted">
-                    Max available liquidity: {availableLiquidity} CR
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="buyDays" className="text-sm font-semibold text-ink">
-                    Coverage Duration (Days)
-                  </label>
-                  <input
-                    id="buyDays"
-                    type="number"
-                    min="1"
-                    max="365"
-                    value={buyDays}
-                    onChange={(e) => setBuyDays(Number(e.target.value))}
-                    className="px-4 py-2.5 rounded-lg border border-sand-border bg-page text-ink font-mono"
-                  />
-                  <span className="text-xs text-ink-muted">Range: 1 to 365 days</span>
-                </div>
+            <form onSubmit={handleBuy} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="buyCoverage" className="text-sm font-semibold text-ink">
+                  Coverage Amount (Demo Credits)
+                </label>
+                <input
+                  id="buyCoverage"
+                  type="number"
+                  min="1"
+                  max={availableLiquidity}
+                  value={buyCoverage}
+                  onChange={(e) => setBuyCoverage(Number(e.target.value))}
+                  className="px-4 py-2.5 rounded-lg border border-sand-border bg-page text-ink font-mono"
+                />
+                <span className="text-xs text-ink-muted">
+                  Max available in pool: {availableLiquidity} CR
+                </span>
               </div>
 
-              {/* Quotation Preview */}
-              <div className="p-4 rounded-lg bg-page border border-sand-border flex items-center justify-between">
-                <div>
-                  <span className="text-xs uppercase font-semibold text-ink-muted">
-                    Calculated Premium
-                  </span>
-                  <div className="text-2xl font-bold font-mono text-primary">
+              {/* Term Duration Card */}
+              <div className="p-3.5 rounded-lg bg-page border border-sand-border flex flex-col gap-1 text-xs">
+                <span className="font-semibold text-ink">Coverage Term:</span>
+                <span className="text-ink-muted">
+                  Open until settled or cancelled. There is no artificial clock expiry.
+                </span>
+              </div>
+
+              {/* Quoted Premium Summary */}
+              <div className="p-4 rounded-lg bg-page border border-sand-border flex flex-col gap-2 font-mono text-sm">
+                <div className="flex justify-between items-center text-xs text-ink-muted font-sans">
+                  <span>Premium Rate:</span>
+                  <span className="font-mono">{product.premium_bps} bps ({(product.premium_bps / 100).toFixed(2)}%)</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-sand-border font-bold">
+                  <span className="font-sans">Quoted Premium:</span>
+                  <span className="text-lg text-primary">
                     {quotedPremium !== null ? `${quotedPremium} CR` : 'Calculating...'}
-                  </div>
-                </div>
-                <div className="text-right text-xs text-ink-muted">
-                  <div>Rate: {(product.premium_bps / 100).toFixed(2)}% / yr</div>
-                  <div>Coverage: {buyCoverage} CR</div>
+                  </span>
                 </div>
               </div>
 
-              {/* Action */}
               <button
                 type="submit"
-                disabled={
-                  !isConnected ||
-                  availableLiquidity <= 0 ||
-                  buyCoverage > availableLiquidity ||
-                  txState.stage === 'submitting' ||
-                  txState.stage === 'pending_consensus'
-                }
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-primary-contrast font-semibold text-lg hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
+                disabled={!isConnected || availableLiquidity <= 0 || buyCoverage > availableLiquidity}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-primary-contrast font-semibold hover:bg-primary-hover disabled:opacity-50 min-h-[48px]"
               >
                 <Shield className="w-5 h-5" />
                 <span>
-                  {availableLiquidity <= 0
-                    ? 'Pool Liquidity Exhausted'
-                    : isConnected
-                    ? 'Confirm & Purchase Policy'
+                  {isConnected
+                    ? availableLiquidity <= 0
+                      ? 'Pool Liquidity Exhausted'
+                      : 'Purchase Protection'
                     : 'Connect Wallet to Purchase'}
                 </span>
               </button>
@@ -366,7 +406,7 @@ export const ProductDetailPage: React.FC = () => {
                   <thead className="bg-page border-b border-sand-border">
                     <tr>
                       <th className="p-2.5">ID</th>
-                      <th className="p-2.5">Buyer</th>
+                      <th className="p-2.5">Holder</th>
                       <th className="p-2.5">Coverage</th>
                       <th className="p-2.5">Premium</th>
                       <th className="p-2.5">Status</th>
@@ -378,9 +418,9 @@ export const ProductDetailPage: React.FC = () => {
                       <tr key={pol.id} className="hover:bg-page/50">
                         <td className="p-2.5 font-bold">#{pol.id}</td>
                         <td className="p-2.5">
-                          {pol.buyer.slice(0, 6)}...{pol.buyer.slice(-4)}
+                          {pol.holder.slice(0, 6)}...{pol.holder.slice(-4)}
                         </td>
-                        <td className="p-2.5 font-bold text-primary">{pol.coverage_amount} CR</td>
+                        <td className="p-2.5 font-bold text-primary">{pol.coverage} CR</td>
                         <td className="p-2.5">{pol.premium} CR</td>
                         <td className="p-2.5">
                           <span
@@ -388,7 +428,7 @@ export const ProductDetailPage: React.FC = () => {
                               pol.status === 'ACTIVE'
                                 ? 'bg-sage text-sage-text'
                                 : pol.status === 'SETTLED'
-                                ? 'bg-brick-bg text-brick'
+                                ? 'bg-primary/20 text-primary'
                                 : 'bg-sand text-ink-muted'
                             }`}
                           >
@@ -412,34 +452,38 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Rule Text & Underwriter Actions */}
+        {/* Right Column: Settlement Specs & Underwriting Controls */}
         <div className="flex flex-col gap-6">
           {/* Rule Specs Card */}
           <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4">
-            <h3 className="text-lg font-bold text-ink">Settlement Specs</h3>
+            <h3 className="text-lg font-bold text-ink">Settlement Specifications</h3>
             <div className="flex flex-col gap-2">
-              <span className="text-xs uppercase font-semibold text-ink-muted">Incident Rule:</span>
-              <p className="text-sm text-ink bg-page p-3 rounded border border-sand-border leading-relaxed">
-                {product.rule_text}
+              <span className="text-xs uppercase font-semibold text-ink-muted">Deterministic Decision Rule:</span>
+              <p className="text-xs text-ink font-mono bg-page p-3 rounded border border-sand-border leading-relaxed break-all">
+                {product.decision_rule}
+              </p>
+              <p className="text-xs text-ink-muted">
+                {generateDecisionRuleSentence(product.min_full, product.min_half)}
               </p>
             </div>
 
-            <div className="flex flex-col gap-1.5 pt-2 border-t border-sand-border">
+            <div className="flex flex-col gap-2 pt-2 border-t border-sand-border">
               <span className="text-xs uppercase font-semibold text-ink-muted">Thresholds:</span>
-              <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
-                <div className="p-2 rounded bg-page border border-sand-border">
-                  <div className="text-[10px] text-ink-muted">100% Pay</div>
-                  <div className="font-bold text-brick">&ge; {product.payout_100_threshold}%</div>
+              <div className="grid grid-cols-2 gap-3 text-center font-mono text-xs">
+                <div className="p-3 rounded bg-page border border-sand-border">
+                  <div className="text-[11px] text-ink-muted font-sans font-medium">100% Full Payout</div>
+                  <div className="font-bold text-primary text-sm mt-1">&ge; {product.min_full} min</div>
                 </div>
-                <div className="p-2 rounded bg-page border border-sand-border">
-                  <div className="text-[10px] text-ink-muted">50% Pay</div>
-                  <div className="font-bold text-clay">&ge; {product.payout_50_threshold}%</div>
-                </div>
-                <div className="p-2 rounded bg-page border border-sand-border">
-                  <div className="text-[10px] text-ink-muted">25% Pay</div>
-                  <div className="font-bold text-clay">&ge; {product.payout_25_threshold}%</div>
+                <div className="p-3 rounded bg-page border border-sand-border">
+                  <div className="text-[11px] text-ink-muted font-sans font-medium">50% Partial Payout</div>
+                  <div className="font-bold text-clay text-sm mt-1">&ge; {product.min_half} min</div>
                 </div>
               </div>
+            </div>
+
+            <div className="flex flex-col gap-1 pt-2 border-t border-sand-border text-xs font-mono">
+              <span className="text-ink-muted font-sans font-semibold">Terms Hash (SHA-256):</span>
+              <span className="text-ink break-all text-[11px]">{product.terms_hash}</span>
             </div>
           </div>
 
@@ -499,13 +543,13 @@ export const ProductDetailPage: React.FC = () => {
                     <button
                       type="submit"
                       disabled={availableLiquidity <= 0}
-                      className="px-4 py-2 rounded-lg bg-clay text-white text-sm font-semibold hover:opacity-90 shrink-0 min-h-[44px]"
+                      className="px-4 py-2 rounded-lg border border-sand-border text-ink text-sm font-semibold hover:bg-page shrink-0 min-h-[44px]"
                     >
                       Withdraw
                     </button>
                   </div>
                   <span className="text-[11px] text-ink-muted">
-                    Max withdrawable: {availableLiquidity} CR
+                    Unreserved available: {availableLiquidity} CR
                   </span>
                 </form>
 
@@ -514,11 +558,15 @@ export const ProductDetailPage: React.FC = () => {
                   <label htmlFor="newSourceUrl" className="text-xs font-semibold text-ink">
                     Update Source URL (Creator Only)
                   </label>
+                  <span className="text-[11px] text-ink-muted">
+                    Must share exact host and directory path as original terms. Affects only policies bought afterwards.
+                  </span>
                   {sourceError && <span className="text-xs text-brick">{sourceError}</span>}
-                  <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
                     <input
                       id="newSourceUrl"
                       type="url"
+                      required
                       value={newSourceUrl}
                       onChange={(e) => setNewSourceUrl(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-sand-border bg-page text-ink font-mono text-xs"
@@ -526,18 +574,18 @@ export const ProductDetailPage: React.FC = () => {
                     />
                     <button
                       type="submit"
-                      className="w-full px-4 py-2 rounded-lg bg-primary text-primary-contrast text-sm font-semibold hover:bg-primary-hover min-h-[44px]"
+                      className="px-4 py-2 rounded-lg bg-primary text-primary-contrast text-sm font-semibold hover:bg-primary-hover shrink-0 min-h-[44px]"
                     >
-                      Save New Source URL
+                      Update
                     </button>
                   </div>
                 </form>
               </div>
             ) : (
-              <div className="p-3 rounded-lg bg-page border border-sand-border text-xs text-ink-muted flex items-start gap-2">
-                <Lock className="w-4 h-4 text-ink-muted shrink-0 mt-0.5" />
+              <div className="p-3 rounded bg-page border border-sand-border text-xs text-ink-muted flex items-center gap-2">
+                <Lock className="w-4 h-4 shrink-0 text-ink-muted" />
                 <span>
-                  Withdrawal and URL reconfiguration are reserved for the pool creator ({product.creator.slice(0, 6)}...{product.creator.slice(-4)}).
+                  Withdrawal and source updating controls are restricted to the product creator.
                 </span>
               </div>
             )}

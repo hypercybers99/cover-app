@@ -66,9 +66,9 @@ export const LimitsPage: React.FC = () => {
           </div>
           <div className="flex flex-col gap-3 font-mono text-sm">
             <div className="flex justify-between items-center py-2 border-b border-sand-border">
-              <span className="text-ink-muted font-sans font-medium">Deposit Range:</span>
+              <span className="text-ink-muted font-sans font-medium">Faucet Allotment:</span>
               <span className="font-bold text-ink">
-                {limits ? `${limits.min_deposit} – ${limits.max_deposit.toLocaleString()} CR` : '...'}
+                {limits ? `${limits.demo_credits.toLocaleString()} CR` : '...'}
               </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-sand-border">
@@ -78,9 +78,9 @@ export const LimitsPage: React.FC = () => {
               </span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-ink-muted font-sans font-medium">Annual Premium BPS:</span>
+              <span className="text-ink-muted font-sans font-medium">Premium Rate Bounds:</span>
               <span className="font-bold text-ink">
-                {limits ? `${limits.min_premium_bps} – ${limits.max_premium_bps} bps (${limits.min_premium_bps / 100}% – ${limits.max_premium_bps / 100}%)` : '...'}
+                100 – 5,000 bps (1.00% – 50.00%)
               </span>
             </div>
           </div>
@@ -89,65 +89,79 @@ export const LimitsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Temporal Limits */}
+        {/* Coverage Term & Settlement Schedule */}
         <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Scale className="w-5 h-5 text-primary" />
-            <h2 className="text-xl font-bold text-ink">Policy Duration</h2>
+            <h2 className="text-xl font-bold text-ink">Coverage Term & Thresholds</h2>
           </div>
           <div className="flex flex-col gap-3 font-mono text-sm">
             <div className="flex justify-between items-center py-2 border-b border-sand-border">
-              <span className="text-ink-muted font-sans font-medium">Minimum Duration:</span>
-              <span className="font-bold text-ink">
-                {limits ? `${limits.min_duration_days} Day` : '...'}
+              <span className="text-ink-muted font-sans font-medium">Policy Term:</span>
+              <span className="font-bold text-primary text-xs">
+                Open until settled or cancelled
               </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-sand-border">
-              <span className="text-ink-muted font-sans font-medium">Maximum Duration:</span>
+              <span className="text-ink-muted font-sans font-medium">Full Outage Threshold:</span>
               <span className="font-bold text-ink">
-                {limits ? `${limits.max_duration_days} Days (1 Year)` : '...'}
+                2 – 10,080 minutes (7 days)
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-ink-muted font-sans font-medium">Partial Outage Threshold:</span>
+              <span className="font-bold text-ink">
+                1 to (min_full - 1) min
               </span>
             </div>
           </div>
           <p className="text-xs text-ink-muted pt-2 border-t border-sand-border">
-            Term limits restrict stale risk exposure and enable dynamic underwriting adjustments.
+            Policies remain active indefinitely until settled or cancelled. No artificial expiration clocks.
           </p>
         </div>
 
-        {/* Text & URL Length Limits */}
+        {/* Web Extraction & Protocol Boundaries */}
         <div className="p-6 rounded-lg bg-sand border border-sand-border flex flex-col gap-4 md:col-span-2">
           <div className="flex items-center gap-2">
             <Cpu className="w-5 h-5 text-primary" />
-            <h2 className="text-xl font-bold text-ink">Input Length Boundaries</h2>
+            <h2 className="text-xl font-bold text-ink">Decentralized Web Extraction Boundaries</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-xs">
             <div className="p-3 rounded bg-page border border-sand-border flex flex-col gap-1">
-              <span className="font-sans font-medium text-ink-muted">Product Name:</span>
+              <span className="font-sans font-medium text-ink-muted">Max Web Page Size:</span>
               <span className="text-base font-bold text-ink">
-                {limits ? `${limits.name_min_len} – ${limits.name_max_len} chars` : '...'}
+                {limits ? `${(limits.max_page_bytes / 1000).toFixed(0)} KB` : '...'}
               </span>
-              <span className="text-[10px] text-ink-muted">ASCII only</span>
+              <span className="text-[10px] text-ink-muted">Contract rejects pages &gt; 400KB</span>
             </div>
 
             <div className="p-3 rounded bg-page border border-sand-border flex flex-col gap-1">
-              <span className="font-sans font-medium text-ink-muted">Source URL:</span>
+              <span className="font-sans font-medium text-ink-muted">Min Extracted Text:</span>
               <span className="text-base font-bold text-ink">
-                {limits ? `Max ${limits.url_max_len} bytes` : '...'}
+                {limits ? `${limits.min_text_chars} chars` : '...'}
               </span>
-              <span className="text-[10px] text-ink-muted">HTTPS, no ports or raw IPs</span>
+              <span className="text-[10px] text-ink-muted">Prevents unreadable status pages</span>
             </div>
 
             <div className="p-3 rounded bg-page border border-sand-border flex flex-col gap-1">
-              <span className="font-sans font-medium text-ink-muted">Incident Rule Text:</span>
+              <span className="font-sans font-medium text-ink-muted">Max List Limit:</span>
               <span className="text-base font-bold text-ink">
-                {limits ? `${limits.rule_min_len} – ${limits.rule_max_len} chars` : '...'}
+                {limits ? `${limits.max_list_limit} items` : '...'}
               </span>
-              <span className="text-[10px] text-ink-muted">Bounded prompt injection guard</span>
+              <span className="text-[10px] text-ink-muted">Bounded query pagination</span>
             </div>
           </div>
-          <p className="text-xs text-ink-muted pt-2 border-t border-sand-border">
-            Bounded prompt sizes ensure deterministic prompt templating and consistent consensus voting among GenLayer validator nodes.
-          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs pt-2 border-t border-sand-border">
+            <div className="p-3 rounded bg-page border border-sand-border flex flex-col gap-1">
+              <span className="font-sans font-medium text-ink-muted">Product Name Length:</span>
+              <span className="text-sm font-bold text-ink">3 – 60 ASCII characters</span>
+            </div>
+            <div className="p-3 rounded bg-page border border-sand-border flex flex-col gap-1">
+              <span className="font-sans font-medium text-ink-muted">Source URL Length:</span>
+              <span className="text-sm font-bold text-ink">1 – 300 ASCII characters (HTTPS only)</span>
+            </div>
+          </div>
         </div>
       </div>
 

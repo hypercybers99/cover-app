@@ -34,7 +34,7 @@ export const ProductsPage: React.FC = () => {
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.id.toString().includes(searchQuery) ||
-      p.source_url.toLowerCase().includes(searchQuery.toLowerCase())
+      (p.url && p.url.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -141,7 +141,7 @@ export const ProductsPage: React.FC = () => {
                   </div>
                   <h3 className="text-xl font-bold text-ink leading-snug">{product.name}</h3>
                   <div className="flex items-center gap-1.5 text-xs text-ink-muted font-mono break-all line-clamp-1">
-                    <span>Source: {product.source_url}</span>
+                    <span>Source: {product.url}</span>
                   </div>
                 </div>
 
@@ -169,8 +169,8 @@ export const ProductsPage: React.FC = () => {
 
                 {/* Rules & Metrics */}
                 <div className="flex items-center justify-between text-xs text-ink-muted pt-1 border-t border-sand-border">
-                  <span>Premium: {(product.premium_bps / 100).toFixed(2)}% / yr</span>
-                  <span>Active Policies: {product.active_policies}</span>
+                  <span>Rate: {(product.premium_bps / 100).toFixed(2)}% ({product.premium_bps} bps)</span>
+                  <span>Policies: {product.policy_count}</span>
                 </div>
 
                 {/* Action Button */}
