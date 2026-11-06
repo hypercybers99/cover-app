@@ -2,26 +2,31 @@
 
 Parametric web-service cover on GenLayer studionet (demo credits).
 
-- **Contract and Evidence Repository**: [https://github.com/hypercybers99/cover-genlayer](https://github.com/hypercybers99/cover-genlayer/tree/cover-v1-final) (tag `cover-v1-final`)
+- **Contract and Evidence Repository**: [https://github.com/hypercybers99/cover-genlayer](https://github.com/hypercybers99/cover-genlayer/tree/cover-v2) (tag `cover-v2`)
 - **Deployed App URL**: [https://hypercybers99.github.io/cover-app/](https://hypercybers99.github.io/cover-app/)
-- **Cover Contract Explorer**: [0x4d12d00d527869a6a6f95358A11589ecf3C347e3](https://explorer-studio.genlayer.com/address/0x4d12d00d527869a6a6f95358A11589ecf3C347e3)
-- **CoverGuard Contract Explorer**: [0x6Ad8554F4Ca7eA3681c6a06b822B0d5c59993724](https://explorer-studio.genlayer.com/address/0x6Ad8554F4Ca7eA3681c6a06b822B0d5c59993724)
+- **Cover V2 Contract Explorer**: [0x3d2698cED9292689f68b401e888fbA1d18CBfdE3](https://explorer-studio.genlayer.com/address/0x3d2698cED9292689f68b401e888fbA1d18CBfdE3)
+- **CoverGuard V2 Contract Explorer**: [0xfEebb7147Dd65b5EbEa7C6634ed4549B45993A1A](https://explorer-studio.genlayer.com/address/0xfEebb7147Dd65b5EbEa7C6634ed4549B45993A1A)
 
 > [!NOTE]
 > Credits are demo credits on GenLayer studionet, not money. Cover is an experimental preview application.
 
 ---
 
-## Active Deployed Contracts
+## Active Deployed Contracts (V2)
 
 | Contract | Address | Source SHA-256 | Deployed Transaction |
 | :--- | :--- | :--- | :--- |
-| **Cover** | `0x4d12d00d527869a6a6f95358A11589ecf3C347e3` | `a1f8ceb89f55db9aa6fe55fb60f4783643212eb127e9c2f76b59266c921d89cc` | `0x311652e1597eba4cb1d90581980c076c0ecb5708ab051756af3fbfa0db804b94` |
-| **CoverGuard** | `0x6Ad8554F4Ca7eA3681c6a06b822B0d5c59993724` | `b2682e9e48b67a0ac95148b25d0e10694fad671359144d2b79368f8b921f7d53` | `0xda046cfaaa78a30b40e226840e1032ee6b637307874b7704a92be72d44321b97` |
+| **Cover V2** | `0x3d2698cED9292689f68b401e888fbA1d18CBfdE3` | `0b2f91d2b64dee1dce4aa13c15c19c274546dd64fff8b738325067c37a12b296` | `0x3f4ef296da9e609ba83dc5ed5c866910e26fd7eb9055273142683618b5e8a8a8` |
+| **CoverGuard V2** | `0xfEebb7147Dd65b5EbEa7C6634ed4549B45993A1A` | `e0546c62266e7ab13b0aaa70489ada2625849742f004cb21732aaef03cd901a1` | `0xdecd58ff74a091ed5b1e7ddb8f188402d1e06ebf92517147cb92199e14fd0b3e` |
 
-Superseded pair: Cover `0x41f8c399e2709333AEAD1F8Ac0B1E5248eC288Bd`, CoverGuard `0x85C0F67F1Cd82aBcCfABb289E6c215c78D17b3eF` (superseded)
+### Superseded Deployments
 
-Source of truth: Contract repository [`cover-genlayer`](https://github.com/hypercybers99/cover-genlayer) at tag `cover-v1-final` (commit `de8ca89`).
+| Version | Cover Address | CoverGuard Address | Status |
+| :--- | :--- | :--- | :--- |
+| **V1** | `0x4d12d00d527869a6a6f95358A11589ecf3C347e3` | `0x6Ad8554F4Ca7eA3681c6a06b822B0d5c59993724` | Superseded, kept for history |
+| **V0** | `0x41f8c399e2709333AEAD1F8Ac0B1E5248eC288Bd` | `0x85C0F67F1Cd82aBcCfABb289E6c215c78D17b3eF` | Superseded, kept for history |
+
+Source of truth: Contract repository [`cover-genlayer`](https://github.com/hypercybers99/cover-genlayer) at tag `cover-v2` (commit `f641d80`).
 
 ---
 
@@ -71,7 +76,7 @@ npm run preview
 Cover includes comprehensive test suites across static analysis, contract verification, client validators, receipt parsing, browser accessibility, and end-to-end user flows.
 
 ```bash
-# 1. Run unit & static scan suites (50 tests)
+# 1. Run unit & static scan suites (67 tests)
 npm test
 
 # 2. Run static constraint scanners individually
@@ -85,8 +90,11 @@ npx playwright test
 # 4. Run automated browser visual & accessibility audit (32 screenshots)
 node scripts/run_browser_checks.mjs
 
-# 5. Run studionet on-chain E2E validation with throwaway key
-npx tsx scripts/e2e_studionet_check.ts
+# 5. Run Studionet on-chain full lifecycle E2E execution with throwaway keys
+npx tsx scripts/e2e_full_chain.mjs
+
+# 6. Run deployed audit on GitHub Pages URL
+node scripts/audit_deployed.mjs
 ```
 
 ---
@@ -96,22 +104,24 @@ npx tsx scripts/e2e_studionet_check.ts
 ```
 cover-app/
 ├── contracts/                  # Reference contract source byte-for-byte copies
-│   ├── Cover.py                # Active Cover intelligent contract (SHA-256 a1f8ceb8...)
-│   └── CoverGuard.py           # Active CoverGuard contract (SHA-256 b2682e9e...)
+│   ├── Cover.py                # Active Cover V2 intelligent contract (SHA-256 0b2f91d2...)
+│   └── CoverGuard.py           # Active CoverGuard V2 contract (SHA-256 e0546c62...)
 ├── docs/                       # Verification artifacts & audit reports
 │   ├── screens/                # 32 viewport screenshots (light/dark, desktop/mobile)
-│   ├── e2e/                    # On-chain test receipts
+│   ├── e2e/                    # On-chain test receipts (12/12 successful writes on Studionet)
+│   ├── deployed_audit/         # GitHub Pages deployed audit outputs (deep links, axe, 360px)
 │   ├── browser_audit.json      # Automated console, axe, and overflow audit results
-│   ├── MANUAL_METAMASK_TEST.md # Step-by-step manual testing runbook
 │   └── FINAL_REPORT_APP.md     # Machine-verifiable completion report
 ├── scripts/                    # Build, sync, and verification tooling
-│   ├── sync_deployments.mjs    # Syncs ADDRESS_REGISTRY.md and deployments.json
-│   ├── sync_evidence.mjs       # Syncs live_evidence and robustness summaries
+│   ├── sync_deployments.mjs    # Syncs deployments.ts with contract evidence
+│   ├── sync_evidence.mjs       # Syncs live_evidence and balance invariant snapshots
 │   ├── verify_contracts.mjs    # Verifies deployed contract payloads vs source
 │   ├── scan_banned.mjs         # Scans for forbidden words
 │   ├── scan_gradients.mjs      # Verifies absence of gradient styles
 │   ├── scan_contrast.mjs       # Asserts WCAG AA contrast ratios
-│   └── run_browser_checks.mjs  # Automated Playwright visual and axe audit
+│   ├── run_browser_checks.mjs  # Automated Playwright visual and axe audit
+│   ├── audit_deployed.mjs      # Automated headless audit against deployed GitHub Pages URL
+│   └── e2e_full_chain.mjs      # Full on-chain lifecycle E2E execution on Studionet
 ├── src/
 │   ├── components/             # Accessible, flat UI components
 │   │   ├── Header.tsx          # Navigation, theme toggle, wallet button, demo pill
@@ -128,24 +138,25 @@ cover-app/
 │   ├── data/                   # Synced evidence summaries and matrix records
 │   ├── lib/
 │   │   ├── errors.ts           # 100% UserError mapping and remediation instructions
-│   │   ├── receipts.ts         # Consensus receipt classifier (SUCCESS, USER_ERROR, etc.)
+│   │   ├── receipts.ts         # Consensus receipt classifier & return value extractor
 │   │   └── validators.ts       # Strict client-side validation mirroring contract rules
-│   ├── pages/                  # 10 Application pages
+│   ├── pages/                  # Application pages
 │   │   ├── LandingPage.tsx     # One-sentence promise, 3-step guide, system metrics
 │   │   ├── ProductsPage.tsx    # Zero-wallet readable product index
-│   │   ├── CreateProductPage.tsx # Underwriter pool deployment form
-│   │   ├── ProductDetailPage.tsx # Purchase cover, quote premium, add/withdraw liquidity
-│   │   ├── PolicyDetailPage.tsx  # Policy terms, settlement trigger, cancellation
+│   │   ├── CreateProductPage.tsx # Underwriter pool deployment form with deterministic rule preview
+│   │   ├── ProductDetailPage.tsx # Purchase cover, quote premium, add/withdraw liquidity, source history
+│   │   ├── PolicyDetailPage.tsx  # Policy terms, settlement trigger, cancellation, locked source
 │   │   ├── CreditsPage.tsx     # Demo credits faucet and accounting invariant
-│   │   ├── CoverGuardPage.tsx  # CoverGuard query and attestation gateway
-│   │   ├── EvidencePage.tsx    # Balance snapshot invariants & 39-step matrix
+│   │   ├── CoverGuardPage.tsx  # 5-arg CoverGuard verification and attestation gateway
+│   │   ├── EvidencePage.tsx    # Balance snapshot invariants & 27-step V2 on-chain matrix
 │   │   ├── LimitsPage.tsx      # Operational bounds read from contract views
 │   │   └── NotFoundPage.tsx    # 404 error page
 │   └── styles/
 │       └── theme.css           # 18px base typography, natural palette variables
 └── tests/                      # Automated test suites
     ├── contracts_and_errors.test.ts # Byte-for-byte SHA assertions & error coverage
-    ├── receipts.test.ts        # 8-path consensus receipt classifier tests
+    ├── golden_types.test.ts    # Conformance tests against deployed contract JSON outputs
+    ├── receipts.test.ts        # Consensus receipt classifier & product ID extraction tests
     ├── scans.test.ts           # Static analysis for banned words and flat fills
     ├── validators.test.ts      # Client-side input validation suite
     └── e2e/
@@ -159,18 +170,18 @@ cover-app/
 | Parameter | Boundary | Rationale |
 | :--- | :--- | :--- |
 | **Deposit Range** | 1 – 1,000,000 CR | Guarantees solvent pool liquidity without numerical overflow |
-| **Coverage Range** | 1 – 100,000 CR | Enforces 100% reserve backing for all issued policies |
-| **Duration Range** | 1 – 365 Days | Bounds temporal risk exposure and prevents stale coverage |
-| **Annual Premium Rate** | 100 – 5,000 bps (1.00% – 50.00%) | Protects underwriters while preventing predatory rates |
+| **Coverage Range** | 10 – 100,000 CR | Enforces reserve backing for all issued policies |
+| **Premium Rate Range** | 100 – 5,000 bps (1.00% – 50.00%) | Protects underwriters while preventing predatory rates |
 | **Product Name Length** | 3 – 60 ASCII characters | Readable UI display; bounds on-chain state footprint |
 | **Source URL Length** | 1 – 300 ASCII characters (HTTPS) | Pure ASCII HTTPS URLs without user credentials or fragments |
-| **Incident Rule Text** | 10 – 200 ASCII characters | Prevents prompt injection; ensures deterministic consensus voting |
+| **Max Page Size** | 400,000 bytes | Protects validators against oversized payload downloads |
+| **Min Text Length** | 200 characters | Prevents unreadable or empty status page evaluation |
 
 ---
 
 ## Error Remediation Reference
 
-Every `gl.vm.UserError` raised by the contracts (54 raise statements: 52 in `Cover.py` across 30 unique templates, 2 in `CoverGuard.py`) maps to a clear user explanation and suggested action in the UI:
+Every `gl.vm.UserError` raised by the contracts (52 raise statements: 50 in `Cover.py` across 29 unique templates, 2 in `CoverGuard.py`) maps to a clear user explanation and suggested action in the UI:
 
 | Contract Error String / Prefix | Contract | User-Facing Explanation | Suggested Remediation |
 | :--- | :--- | :--- | :--- |
@@ -178,7 +189,6 @@ Every `gl.vm.UserError` raised by the contracts (54 raise statements: 52 in `Cov
 | `bad amount` | Cover | The specified credit amount is invalid (must be a positive integer within bounds). | Enter an integer greater than zero within allowed product bounds. |
 | `bad name` | Cover | The product name must be pure ASCII between 3 and 60 characters. | Enter a descriptive ASCII product name between 3 and 60 characters. |
 | `bad premium rate` | Cover | The premium rate must be between 100 bps (1%) and 5,000 bps (50%). | Set a premium rate between 100 bps (1%) and 5,000 bps (50%). |
-| `bad rule text` | Cover | The rule description text must be pure ASCII between 10 and 200 characters. | Provide clear ASCII rule text between 10 and 200 characters. |
 | `bad thresholds` | Cover | Outage thresholds are invalid: min_full must be 2-10080 min, and min_half must be 1 to (min_full - 1). | Adjust thresholds so min_half is strictly less than min_full. |
 | `bad URL: fragment not allowed` | Cover | The source URL contains a hash fragment identifier (#section). | Remove the # anchor fragment from the URL. |
 | `bad URL: IP literals not allowed` | Cover | The source URL uses a raw IPv4 or IPv6 numerical address. | Use a public DNS hostname instead of an IP literal. |
