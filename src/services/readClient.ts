@@ -200,16 +200,13 @@ export async function getLimits(): Promise<PlatformLimits> {
   } catch (err) {
     console.warn('Error reading limits:', err);
     return {
-      max_name_chars: '60',
-      max_rule_chars: '200',
-      max_url_chars: '300',
+      schema_version: '1',
+      demo_credits: '1000',
+      max_coverage: '100000',
+      min_coverage: '10',
       max_page_bytes: '400000',
       min_text_chars: '200',
-      max_quote_chars: '300',
-      min_bps: '100',
-      max_bps: '5000',
-      min_full_threshold: '2',
-      max_full_threshold: '10080',
+      max_list_limit: '20',
     };
   }
 }
@@ -317,54 +314,52 @@ export class CoverReadClient {
   async getPolicy(policyId: number | string): Promise<Policy | null> {
     const rec = await getPolicy(String(policyId));
     if (!rec) return null;
-    let outcome: Outcome = 'REVIEW';
-    let gate: Gate = 'JUDGED';
-    let settlement_snapshot_hash: string | undefined;
-    let settlement_tx_hash: string | undefined;
-
-    if (rec.settlement_id && rec.settlement_id !== '0') {
-      const sett = await getSettlement(rec.settlement_id);
-      if (sett) {
-        outcome = (sett.outcome as Outcome) || 'REVIEW';
-        gate = (sett.gate as Gate) || 'JUDGED';
-        settlement_snapshot_hash = sett.quote;
-      }
-    }
 
     return {
-      id: parseInt(rec.id, 10),
-      product_id: parseInt(rec.product_id, 10),
-      buyer: rec.holder,
-      coverage_amount: parseInt(rec.coverage || '0', 10),
+      id: rec.id,
+      product_id: rec.product_id,
+      holder: rec.holder,
+      coverage: parseInt(rec.coverage || '0', 10),
       premium: parseInt(rec.premium || '0', 10),
-      start_time: rec.created_at ? parseInt(rec.created_at, 10) : 0,
-      end_time: rec.created_at ? parseInt(rec.created_at, 10) + 30 * 86400 : 0,
-      status: rec.status === 'PAID' ? 'SETTLED' : (rec.status as any),
-      outcome,
-      gate,
-      settlement_tx_hash,
-      initial_snapshot_hash: rec.terms_hash,
-      settlement_snapshot_hash,
+      status: rec.status,
+      terms_hash: rec.terms_hash,
+      evidence_url: rec.evidence_url,
+      decision_rule: rec.decision_rule,
+      term: rec.term || 'OPEN_UNTIL_SETTLED_OR_CANCELLED',
+      min_full_outage_minutes: parseInt(rec.min_full || '30', 10),
+      min_half_outage_minutes: parseInt(rec.min_half || '15', 10),
+      premium_bps: parseInt(rec.premium_bps || '500', 10),
+      payout: parseInt(rec.payout || '0', 10),
+      settlement_id: rec.settlement_id || '',
+      buy_norm_hash16: rec.buy_norm_hash16,
+      cancel_refund: parseInt(rec.cancel_refund || '0', 10),
     };
   }
 
   async getProductPolicies(productId: number | string, limit: number = 20): Promise<Policy[]> {
     const recs = await listPoliciesByProduct(String(productId), limit);
     return recs.map((rec) => ({
-      id: parseInt(rec.id, 10),
-      product_id: parseInt(rec.product_id, 10),
-      buyer: rec.holder,
-      coverage_amount: parseInt(rec.coverage || '0', 10),
+      id: rec.id,
+      product_id: rec.product_id,
+      holder: rec.holder,
+      coverage: parseInt(rec.coverage || '0', 10),
       premium: parseInt(rec.premium || '0', 10),
-      start_time: rec.created_at ? parseInt(rec.created_at, 10) : 0,
-      end_time: rec.created_at ? parseInt(rec.created_at, 10) + 30 * 86400 : 0,
-      status: rec.status === 'PAID' ? 'SETTLED' : (rec.status as any),
-      outcome: 'REVIEW',
-      gate: 'JUDGED',
+      status: rec.status,
+      terms_hash: rec.terms_hash,
+      evidence_url: rec.evidence_url,
+      decision_rule: rec.decision_rule,
+      term: rec.term || 'OPEN_UNTIL_SETTLED_OR_CANCELLED',
+      min_full_outage_minutes: parseInt(rec.min_full || '30', 10),
+      min_half_outage_minutes: parseInt(rec.min_half || '15', 10),
+      premium_bps: parseInt(rec.premium_bps || '500', 10),
+      payout: parseInt(rec.payout || '0', 10),
+      settlement_id: rec.settlement_id || '',
+      buy_norm_hash16: rec.buy_norm_hash16,
+      cancel_refund: parseInt(rec.cancel_refund || '0', 10),
     }));
   }
 
-  async quotePremium(productId: number | string, coverage: number, _days?: number): Promise<number> {
+  async quotePremium(productId: number | string, coverage: number): Promise<number> {
     const prod = await this.getProduct(productId);
     const bps = prod ? prod.premium_bps : 500;
     return quotePremium(coverage, bps);
@@ -373,36 +368,32 @@ export class CoverReadClient {
   async getLimits(): Promise<Limits> {
     const lim = await getLimits();
     return {
-      min_deposit: 1,
-      max_deposit: 1000000,
-      min_coverage: 1,
-      max_coverage: 100000,
-      min_duration_days: 1,
-      max_duration_days: 365,
-      min_premium_bps: parseInt(lim.min_bps || '100', 10),
-      max_premium_bps: parseInt(lim.max_bps || '5000', 10),
-      name_min_len: 3,
-      name_max_len: parseInt(lim.max_name_chars || '60', 10),
-      url_max_len: parseInt(lim.max_url_chars || '300', 10),
-      rule_min_len: 10,
-      rule_max_len: parseInt(lim.max_rule_chars || '200', 10),
+      demo_credits: parseInt(lim.demo_credits || '1000', 10),
+      max_coverage: parseInt(lim.max_coverage || '100000', 10),
+      min_coverage: parseInt(lim.min_coverage || '10', 10),
+      max_page_bytes: parseInt(lim.max_page_bytes || '400000', 10),
+      min_text_chars: parseInt(lim.min_text_chars || '200', 10),
+      max_list_limit: parseInt(lim.max_list_limit || '20', 10),
     };
   }
 
   private mapProduct(rec: ProductRecord): Product {
     return {
-      id: parseInt(rec.id, 10),
+      id: rec.id,
       name: rec.name,
-      source_url: rec.url,
-      rule_text: rec.rule_text,
-      payout_100_threshold: parseInt(rec.min_full || '90', 10),
-      payout_50_threshold: parseInt(rec.min_half || '50', 10),
-      payout_25_threshold: 25,
-      premium_bps: parseInt(rec.premium_bps || '500', 10),
+      url: rec.url,
       creator: rec.creator,
+      decision_rule: rec.decision_rule,
+      term: rec.term || 'OPEN_UNTIL_SETTLED_OR_CANCELLED',
+      min_full: parseInt(rec.min_full || '30', 10),
+      min_half: parseInt(rec.min_half || '15', 10),
+      premium_bps: parseInt(rec.premium_bps || '500', 10),
+      terms_hash: rec.terms_hash,
       pool_balance: parseInt(rec.pool_balance || '0', 10),
-      reserved: 0,
-      active_policies: 0,
+      reserved: parseInt(rec.reserved || '0', 10),
+      policy_count: parseInt(rec.policy_count || '0', 10),
+      source_history: rec.source_history || [rec.url],
+      seq: rec.seq || '1',
     };
   }
 }
@@ -417,13 +408,18 @@ export class CoverGuardReadClient {
     return res.covered === 'true' || res.covered === '1';
   }
 
-  async isCoveredFor(holderAddress: string, minCoverage: number): Promise<boolean> {
-    return isCoveredFor(holderAddress, '1', '1', '', minCoverage);
+  async isCoveredFor(
+    holderAddress: string,
+    policyId: string,
+    productId: string,
+    termsHash: string,
+    minCoverage: number
+  ): Promise<boolean> {
+    return isCoveredFor(holderAddress, policyId, productId, termsHash, minCoverage);
   }
 
-  async getAttestation(attestationIdOrAddress: string): Promise<number | null> {
-    const rec = await getAttestation(attestationIdOrAddress);
-    return rec ? Date.now() / 1000 : null;
+  async getAttestation(attestationId: string): Promise<AttestationRecord | null> {
+    return getAttestation(attestationId);
   }
 }
 

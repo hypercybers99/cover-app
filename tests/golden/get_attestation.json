@@ -1,0 +1,10 @@
+{
+  "attester": "0x7283b82dc3efd92119937ac44a68d28fb933d4bf",
+  "coverage": "100",
+  "evidence_url_hash": "c7edfdeac26d29fc33e4462b85e849a398ef1ef4ba69f21b57d8f900cac35742",
+  "id": "1",
+  "policy_id": "1",
+  "product_id": "1",
+  "schema_version": "1",
+  "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1"
+}

@@ -1,0 +1,27 @@
+{
+  "creator": "0xd34bcb236da5b2dd35849a0f3ab46d015f4c07c0",
+  "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+  "dir_path": "/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/",
+  "host": "raw.githubusercontent.com",
+  "id": "1",
+  "min_full": "60",
+  "min_half": "30",
+  "name": "Nimbus Outage Cover",
+  "policy_count": "3",
+  "pool_balance": "370",
+  "premium_bps": "1000",
+  "reserved": "150",
+  "schema_version": "1",
+  "seq": "6",
+  "source_history": [
+    "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md",
+    "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s1-outage-75.md",
+    "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s5-operational-reformatted.html",
+    "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s8-already-down.md",
+    "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s9-too-short.md",
+    "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md"
+  ],
+  "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+  "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1",
+  "url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md"
+}

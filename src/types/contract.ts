@@ -1,98 +1,118 @@
+// Contract Data Types strictly matching GenLayer CoverV2 & CoverGuardV2 records key-for-key.
+// No phantom or clock fields (no start_time, end_time, days, min_duration_days).
+
+export type PolicyStatus = 'ACTIVE' | 'SETTLED' | 'CANCELLED';
+
 export interface ProductRecord {
+  schema_version: string;
   id: string;
+  creator: string;
   name: string;
   url: string;
-  rule_text: string;
+  host: string;
+  dir_path: string;
+  decision_rule: string;
+  term: string;
   min_full: string;
   min_half: string;
   premium_bps: string;
-  creator: string;
-  pool_balance: string;
   terms_hash: string;
-  schema_version?: string;
+  pool_balance: string;
+  reserved: string;
+  policy_count: string;
+  source_history: string[];
+  seq: string;
 }
 
-export type PolicyStatus = 'ACTIVE' | 'PAID' | 'CANCELLED';
-
 export interface PolicyRecord {
+  schema_version: string;
   id: string;
   product_id: string;
   holder: string;
   coverage: string;
   premium: string;
-  created_at?: string;
   status: PolicyStatus;
+  buy_norm_hash16: string;
+  paid_amount: string;
+  payout: string;
   settlement_id: string;
   cancel_refund: string;
-  terms_hash?: string;
-  schema_version?: string;
+  terms_hash: string;
+  evidence_url: string;
+  decision_rule: string;
+  min_full: string;
+  min_half: string;
+  premium_bps: string;
+  term: string;
+  attempts: string;
+  seq: string;
 }
 
 export interface PoolHealthRecord {
+  schema_version: string;
   product_id: string;
   pool_balance: string;
   reserved: string;
   free: string;
   coverage_ratio_bps: string;
-  schema_version?: string;
 }
 
 export interface SettlementRecord {
+  schema_version: string;
   id: string;
   policy_id: string;
   product_id: string;
-  gate: 'PAGE_UNCHANGED' | 'TRIPWIRE' | 'JUDGED' | 'PARSE_FAILURE' | string;
-  status: 'OPERATIONAL' | 'DEGRADED' | 'OUTAGE' | 'UNCLEAR' | string;
+  caller: string;
+  terms_hash: string;
+  evidence_url: string;
+  url_used: string;
+  coverage: string;
+  payout: string;
+  status: string;
   minutes: string;
   quote: string;
-  outcome: 'PAY_100' | 'PAY_50' | 'PAY_25' | 'NO_PAY' | 'REVIEW' | string;
-  payout: string;
-  tripwire: boolean;
-  observed_at?: string;
-  schema_version?: string;
+  outcome: string;
+  gate: string;
+  tripwire: string; // 'true' | 'false' string in contract
+}
+
+export interface PlatformLimits {
+  schema_version: string;
+  demo_credits: string;
+  max_coverage: string;
+  min_coverage: string;
+  max_page_bytes: string;
+  min_text_chars: string;
+  max_list_limit: string;
 }
 
 export interface PlatformStats {
+  schema_version: string;
   total_minted: string;
   next_product: string;
   next_policy: string;
   next_settlement: string;
-  schema_version?: string;
-}
-
-export interface PlatformLimits {
-  max_name_chars: string;
-  max_rule_chars: string;
-  max_url_chars: string;
-  max_page_bytes: string;
-  min_text_chars: string;
-  max_quote_chars: string;
-  min_bps: string;
-  max_bps: string;
-  min_full_threshold: string;
-  max_full_threshold: string;
-  schema_version?: string;
-}
-
-export interface CoverCheckRecord {
-  covered: 'true' | 'false' | string;
-  reason: 'OK' | 'NO_POLICY' | 'NOT_HOLDER' | 'PAID' | 'CANCELLED' | 'POOL_SHORT' | string;
-  policy_status: string;
-  coverage: string;
-  product_id: string;
 }
 
 export interface AttestationRecord {
+  schema_version: string;
   id: string;
   attester: string;
   policy_id: string;
   product_id: string;
   coverage: string;
   terms_hash: string;
-  schema_version?: string;
+  evidence_url_hash: string;
 }
 
-// UI and Application Domain Types
+export interface CoverCheckRecord {
+  covered: 'true' | 'false' | string;
+  reason: string;
+  policy_id?: string;
+  coverage?: string;
+}
+
+// UI Domain Types (clean numbers / parsed representations)
 export type Outcome = 'PAY_100' | 'PAY_50' | 'PAY_25' | 'NO_PAY' | 'REVIEW';
 export type Gate = 'PAGE_UNCHANGED' | 'TRIPWIRE' | 'JUDGED';
 
@@ -103,49 +123,50 @@ export interface TxState {
 }
 
 export interface Product {
-  id: number;
+  id: string;
   name: string;
-  source_url: string;
-  rule_text: string;
-  payout_100_threshold: number;
-  payout_50_threshold: number;
-  payout_25_threshold: number;
-  premium_bps: number;
+  url: string;
   creator: string;
+  decision_rule: string;
+  term: string;
+  min_full: number;
+  min_half: number;
+  premium_bps: number;
+  terms_hash: string;
   pool_balance: number;
   reserved: number;
-  active_policies: number;
+  policy_count: number;
+  source_history: string[];
+  seq: string;
 }
 
 export interface Policy {
-  id: number;
-  product_id: number;
-  buyer: string;
-  coverage_amount: number;
+  id: string;
+  product_id: string;
+  holder: string;
+  coverage: number;
   premium: number;
-  start_time: number;
-  end_time: number;
-  status: 'ACTIVE' | 'SETTLED' | 'CANCELLED';
-  outcome: Outcome;
-  gate: Gate;
-  settlement_tx_hash?: string;
-  initial_snapshot_hash?: string;
-  settlement_snapshot_hash?: string;
+  status: PolicyStatus;
+  terms_hash: string;
+  evidence_url: string;
+  decision_rule: string;
+  term: string;
+  min_full_outage_minutes: number;
+  min_half_outage_minutes: number;
+  premium_bps: number;
+  payout: number;
+  settlement_id: string;
+  buy_norm_hash16: string;
+  created_at_step?: string;
+  settled_at_step?: string;
+  cancel_refund?: number;
 }
 
 export interface Limits {
-  min_deposit: number;
-  max_deposit: number;
-  min_coverage: number;
+  demo_credits: number;
   max_coverage: number;
-  min_duration_days: number;
-  max_duration_days: number;
-  min_premium_bps: number;
-  max_premium_bps: number;
-  name_min_len: number;
-  name_max_len: number;
-  url_max_len: number;
-  rule_min_len: number;
-  rule_max_len: number;
+  min_coverage: number;
+  max_page_bytes: number;
+  min_text_chars: number;
+  max_list_limit: number;
 }
-

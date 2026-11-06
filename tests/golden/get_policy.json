@@ -1,0 +1,23 @@
+{
+  "attempts": "1",
+  "buy_norm_hash16": "4aa1659279aef945",
+  "cancel_refund": "0",
+  "coverage": "100",
+  "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+  "evidence_url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md",
+  "holder": "0x7283b82dc3efd92119937ac44a68d28fb933d4bf",
+  "id": "1",
+  "min_full": "60",
+  "min_half": "30",
+  "paid_amount": "0",
+  "payout": "0",
+  "premium": "10",
+  "premium_bps": "1000",
+  "product_id": "1",
+  "schema_version": "1",
+  "seq": "2",
+  "settlement_id": "1",
+  "status": "ACTIVE",
+  "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+  "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1"
+}
