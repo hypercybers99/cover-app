@@ -20,8 +20,8 @@ describe('Contracts and Deployments Integrity', () => {
     console.log(`  Cover.py SHA-256:      ${coverSha}`);
     console.log(`  CoverGuard.py SHA-256: ${guardSha}`);
 
-    expect(coverSha.startsWith('a1f8ceb8')).toBe(true);
-    expect(guardSha.startsWith('b2682e9e')).toBe(true);
+    expect(coverSha.startsWith('0b2f91d2')).toBe(true);
+    expect(guardSha.startsWith('e0546c62')).toBe(true);
     expect(coverSha).toBe(DEPLOYMENTS.cover.sourceSha256);
     expect(guardSha).toBe(DEPLOYMENTS.coverGuard.sourceSha256);
   });

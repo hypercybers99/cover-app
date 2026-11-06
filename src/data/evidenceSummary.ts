@@ -13,8 +13,12 @@ export interface BalanceSnapshot {
   step: string;
   underwriter: number;
   buyer: number;
-  pool_balance: number;
-  reserved: number;
+  pool_balance?: number;
+  reserved?: number;
+  pool_1_balance?: number;
+  pool_1_reserved?: number;
+  pool_2_balance?: number;
+  pool_2_reserved?: number;
   total_minted: number;
 }
 
@@ -39,485 +43,98 @@ export interface RobustnessBatchResult {
 
 export const EVIDENCE_META: MetaHeader = {
   source_repo: 'https://github.com/hypercybers99/cover-genlayer',
-  source_tag: 'cover-v1-final',
-  source_commit: 'de8ca897d2c0ad449facba25739f631292209e65',
-  source_path: 'docs/evidence/live_evidence.json',
-  synced_at: '2026-11-01T04:05:53.403Z',
+  source_tag: 'cover-v2',
+  source_commit: 'f641d80b2e3108fcd614efd8a5dd8b76270ad162',
+  source_path: 'scripts/deploy/evidence_v2.json',
+  synced_at: '2026-11-06T12:01:54.587Z',
 };
 
-export const PROMPT_SHA256 = '90be3b95dd867b8cc3a04f9464e3a1ab3b499343d3c4a40664042651092ecca1';
+export const PROMPT_SHA256 = '5a8c842c53e4329313d349afa6932672980dd1e8466af75118eeb8df010daa1d';
+export const PARSE_EXTRACTION_SHA256 = 'c44e054a7af6a9abb30fbc536895ce61532bf2edf016497d23a53ab094370978';
 
-export const BALANCE_SNAPSHOTS: BalanceSnapshot[] = [
+// V2 Scenarios S1-S5 On-chain evidence
+export const TRANSACTION_MATRIX_V2: TransactionEvidence[] = [
   {
-    "step": "claim_underwriter",
-    "underwriter": 1000,
-    "buyer": 0,
-    "pool_balance": 0,
-    "reserved": 0,
-    "total_minted": 1000
-  },
-  {
-    "step": "claim_buyer",
-    "underwriter": 1000,
-    "buyer": 1000,
-    "pool_balance": 0,
-    "reserved": 0,
-    "total_minted": 2000
-  },
-  {
-    "step": "create_product",
-    "underwriter": 1000,
-    "buyer": 1000,
-    "pool_balance": 0,
-    "reserved": 0,
-    "total_minted": 2000
-  },
-  {
-    "step": "fund_product",
-    "underwriter": 400,
-    "buyer": 1000,
-    "pool_balance": 600,
-    "reserved": 0,
-    "total_minted": 2000
-  },
-  {
-    "step": "buy_Pa",
-    "underwriter": 400,
-    "buyer": 990,
-    "pool_balance": 610,
-    "reserved": 100,
-    "total_minted": 2000
-  },
-  {
-    "step": "buy_Pb",
-    "underwriter": 400,
-    "buyer": 980,
-    "pool_balance": 620,
-    "reserved": 200,
-    "total_minted": 2000
-  },
-  {
-    "step": "buy_Pc",
-    "underwriter": 400,
-    "buyer": 970,
-    "pool_balance": 630,
-    "reserved": 300,
-    "total_minted": 2000
-  },
-  {
-    "step": "buy_Pd",
-    "underwriter": 400,
-    "buyer": 960,
-    "pool_balance": 640,
-    "reserved": 400,
-    "total_minted": 2000
-  },
-  {
-    "step": "settle_Pa_PAY_100",
-    "underwriter": 400,
-    "buyer": 1060,
-    "pool_balance": 540,
-    "reserved": 300,
-    "total_minted": 2000
-  },
-  {
-    "step": "settle_Pb_PAY_50",
-    "underwriter": 400,
-    "buyer": 1110,
-    "pool_balance": 490,
-    "reserved": 200,
-    "total_minted": 2000
-  },
-  {
-    "step": "settle_Pc_PAY_25",
-    "underwriter": 400,
-    "buyer": 1135,
-    "pool_balance": 465,
-    "reserved": 100,
-    "total_minted": 2000
-  },
-  {
-    "step": "settle_Pd_NO_PAY_s3",
-    "underwriter": 0,
-    "buyer": 1135,
-    "pool_balance": 465,
-    "reserved": 100,
-    "total_minted": 1600
-  },
-  {
-    "step": "settle_Pd_NO_PAY_s5",
-    "underwriter": 400,
-    "buyer": 1135,
-    "pool_balance": 465,
-    "reserved": 100,
-    "total_minted": 2000
-  },
-  {
-    "step": "settle_Pd_REVIEW_s6",
-    "underwriter": 400,
-    "buyer": 1135,
-    "pool_balance": 465,
-    "reserved": 100,
-    "total_minted": 2000
-  },
-  {
-    "step": "settle_Pd_REVIEW_s7",
-    "underwriter": 400,
-    "buyer": 1135,
-    "pool_balance": 465,
-    "reserved": 100,
-    "total_minted": 2000
-  },
-  {
-    "step": "settle_Pd_PAGE_UNCHANGED",
-    "underwriter": 400,
-    "buyer": 1135,
-    "pool_balance": 465,
-    "reserved": 100,
-    "total_minted": 2000
-  },
-  {
-    "step": "cancel_Pd",
-    "underwriter": 400,
-    "buyer": 1135,
-    "pool_balance": 465,
-    "reserved": 0,
-    "total_minted": 2000
-  },
-  {
-    "step": "withdraw_50",
-    "underwriter": 450,
-    "buyer": 1135,
-    "pool_balance": 415,
-    "reserved": 0,
-    "total_minted": 2000
-  }
-];
-
-export const TRANSACTION_MATRIX: TransactionEvidence[] = [
-  {
-    "label": "claim_demo_credits_underwriter",
+    "label": "s1_claim_credits_underwriter",
     "function": "claim_demo_credits",
-    "tx_hash": "0xe92e705f332fc1e8924b4383a94a0ebff3e5628374c38cd3a66b0c307b5e1223",
+    "tx_hash": "0x069e0253e0f0f607f2731e01f3ca590bc5ea16ccd3302a62d6e13930a15444bc",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "SUCCESS",
     "error_payload": "[object Object]",
-    "latency_seconds": "9.37",
+    "latency_seconds": "5.82",
     "expected_success": true
   },
   {
-    "label": "claim_demo_credits_buyer",
+    "label": "s1_claim_credits_buyer",
     "function": "claim_demo_credits",
-    "tx_hash": "0xc911a755f52614073204246cdbebf6e64918895e4c7a3b225271bd27c2c3d864",
+    "tx_hash": "0x462e59468af73c4d1389b6c103be09094f23d3a40a94f0ad857319cb72fe5ec5",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "SUCCESS",
     "error_payload": "[object Object]",
-    "latency_seconds": "9.38",
+    "latency_seconds": "9.57",
     "expected_success": true
   },
   {
-    "label": "create_product",
+    "label": "s1_create_product_1",
     "function": "create_product",
-    "tx_hash": "0xca9107861586467463b2ec5be0451fd6d7acefaa143dcdc820ec0a5146256f0a",
+    "tx_hash": "0xaa699d60eef657bcdcdb6dbe571ccda717f0ab3255c1912ebefad37d5b45349a",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "SUCCESS",
     "error_payload": "[object Object]",
-    "latency_seconds": "5.71",
+    "latency_seconds": "5.59",
     "expected_success": true
   },
   {
-    "label": "fund_product",
+    "label": "s1_create_product_2",
+    "function": "create_product",
+    "tx_hash": "0x913847488ebc7d547fd2b1a176ebbb8057dfe7b0e744db373d1f43ae34cc4fce",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "SUCCESS",
+    "error_payload": "[object Object]",
+    "latency_seconds": "5.60",
+    "expected_success": true
+  },
+  {
+    "label": "s1_fund_product_1",
     "function": "fund_product",
-    "tx_hash": "0xd7f82413457853e627bb5e92104156b6acdca393f6e1bed7368c1e696e5ea53e",
+    "tx_hash": "0xcff89a647d8749f5e0c7d89d20c7647857ffa4745803f8dd3e2b7f8d6ba339cd",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "SUCCESS",
     "error_payload": "[object Object]",
-    "latency_seconds": "5.56",
+    "latency_seconds": "9.48",
     "expected_success": true
   },
   {
-    "label": "buy_policy_Pa",
+    "label": "s1_fund_product_2",
+    "function": "fund_product",
+    "tx_hash": "0x85ab6e707afa5a609d87f175453dec8a4e1076f3353cdebef113a26f020a21ad",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "SUCCESS",
+    "error_payload": "[object Object]",
+    "latency_seconds": "9.47",
+    "expected_success": true
+  },
+  {
+    "label": "s2_buy_policy_1",
     "function": "buy",
-    "tx_hash": "0x6c576550c13893ee45809289c076a306e9609c7becd3fc0cac20a3acb49ebca1",
+    "tx_hash": "0xcec0fc18ffe3aa9a9a33c5891ab3754d581f1be87f0e26737eefcd85ebb78319",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "SUCCESS",
     "error_payload": "[object Object]",
-    "latency_seconds": "20.92",
+    "latency_seconds": "24.66",
     "expected_success": true
   },
   {
-    "label": "buy_policy_Pb",
-    "function": "buy",
-    "tx_hash": "0x0313b0e12b6ad95a749b960933394d51cc6e69505c4476c58efe6d2172ffa20e",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "16.97",
-    "expected_success": true
-  },
-  {
-    "label": "buy_policy_Pc",
-    "function": "buy",
-    "tx_hash": "0x92d5c6186b97e6390e42bec6d2d7e6ae8d23228d07e8926f57600dd103d6a684",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "9.46",
-    "expected_success": true
-  },
-  {
-    "label": "buy_policy_Pd",
-    "function": "buy",
-    "tx_hash": "0x64db500b1767fffb157fa9c60be2a20dce3dcdfc709b5c57f564c9b6a986474e",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "13.29",
-    "expected_success": true
-  },
-  {
-    "label": "update_source_s8",
+    "label": "s2_update_source_product_1_to_s1",
     "function": "update_source",
-    "tx_hash": "0x6516e6f4846567fefb38b7f2a7aad44bdb859d46eff9963d6d12f6acc2bb4c5e",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "5.52",
-    "expected_success": true
-  },
-  {
-    "label": "buy_refused_s8",
-    "function": "buy",
-    "tx_hash": "0x578ac20a937ea0e4c32d55e841aeb98de7275489fa9439f0270b3b62d576e947",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "ERROR",
-    "error_payload": "z����ky�r�zk�\n޲�+�֭�˧rW���i��!j�",
-    "latency_seconds": "17.10",
-    "expected_success": false
-  },
-  {
-    "label": "update_source_s0",
-    "function": "update_source",
-    "tx_hash": "0x225eeddc8ab6e1310972146c32209ed2209cb38161bbd77357950ec493606a16",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "5.62",
-    "expected_success": true
-  },
-  {
-    "label": "guard_attest_Pa_before",
-    "function": "attest",
-    "tx_hash": "0x406c6f0b48a9a51fcda0d0f851823851e32662221f4e522618a301f8c25acb33",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "5.63",
-    "expected_success": true
-  },
-  {
-    "label": "update_source_s1",
-    "function": "update_source",
-    "tx_hash": "0xa8560112df9e87a6cf6ebb2e47e8116beca39f86a57a50934a26cad72af14c78",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "5.49",
-    "expected_success": true
-  },
-  {
-    "label": "settle_Pa_s1_PAY_100",
-    "function": "settle",
-    "tx_hash": "0xd3b080ddcb88ab3d1a4365cb3f0924e506451fe764f0413219850c428ea8d395",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "17.17",
-    "expected_success": true
-  },
-  {
-    "label": "update_source_s2",
-    "function": "update_source",
-    "tx_hash": "0xb85113485c9a2d44acd61e56167633a22920471f407f567b32c1440c475e907f",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "5.71",
-    "expected_success": true
-  },
-  {
-    "label": "settle_Pb_s2_PAY_50",
-    "function": "settle",
-    "tx_hash": "0xfe110b4523c9c7eccc3865a737c871167bbfc9b234177387dbb5f507dbe32198",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "20.81",
-    "expected_success": true
-  },
-  {
-    "label": "update_source_s4",
-    "function": "update_source",
-    "tx_hash": "0xc2f53540edda4df99b1d84d9f0b84bf600040b05d793410edbc7cbf9203a6ecb",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "5.64",
-    "expected_success": true
-  },
-  {
-    "label": "settle_Pc_s4_PAY_25",
-    "function": "settle",
-    "tx_hash": "0x802f3d3aa60cce8f22d0e45554c31b06b750d20921459bb30f021e520b7d0130",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "13.32",
-    "expected_success": true
-  },
-  {
-    "label": "update_source_s3",
-    "function": "update_source",
-    "tx_hash": "0xc072a383e992f809243eea19b7d999dee737dd7ee18a4679f63e0ca59b0d2b09",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "9.52",
-    "expected_success": true
-  },
-  {
-    "label": "settle_Pd_s3_NO_PAY",
-    "function": "settle",
-    "tx_hash": "0x5561defaf8ee9fdadc1ba61d37de7fa5902679ca97d1deba4b692854fa983054",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "13.36",
-    "expected_success": true
-  },
-  {
-    "label": "update_source_s5",
-    "function": "update_source",
-    "tx_hash": "0xb0e785081822f961cfe32c56ce4d5665ad0692aa344c3629dc67b7804e6a24d0",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "9.52",
-    "expected_success": true
-  },
-  {
-    "label": "settle_Pd_s5_NO_PAY",
-    "function": "settle",
-    "tx_hash": "0x0feb08c5220585f10390fcee90a4e93dabc4d5ee48d52463be3dbd23bc0c5a5e",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "16.99",
-    "expected_success": true
-  },
-  {
-    "label": "update_source_s6",
-    "function": "update_source",
-    "tx_hash": "0x4e5c09b6f82f10260d97f148fe837f6ee631e3900e4edef7f1401ae9227fe50b",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "9.46",
-    "expected_success": true
-  },
-  {
-    "label": "settle_Pd_s6_REVIEW_tripwire",
-    "function": "settle",
-    "tx_hash": "0x0335bd4704b713b421abf1a95a6990ed7a9b3b5bf42794ed0e063349bc8516e5",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "17.01",
-    "expected_success": true
-  },
-  {
-    "label": "update_source_s7",
-    "function": "update_source",
-    "tx_hash": "0x705028b673d14867802568fcea147ec825eee185f6ae359713bca06a5397950d",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "9.53",
-    "expected_success": true
-  },
-  {
-    "label": "settle_Pd_s7_REVIEW_no_duration",
-    "function": "settle",
-    "tx_hash": "0x8ec2f35633ff26d029c7b624382863305a7572cfe1161cb1060c8e9c807b94fc",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "13.39",
-    "expected_success": true
-  },
-  {
-    "label": "update_source_s0_again",
-    "function": "update_source",
-    "tx_hash": "0x7aaea28af5374527f157380b54f7b238c86e79427ea1291ff69a6ff121f4f7d6",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "9.45",
-    "expected_success": true
-  },
-  {
-    "label": "settle_Pd_s0_PAGE_UNCHANGED",
-    "function": "settle",
-    "tx_hash": "0x5eaeca207649e0079b9b70fac6bdcbed052a6b4fe24839879921c016ad1cee5e",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "SUCCESS",
-    "error_payload": "[object Object]",
-    "latency_seconds": "9.45",
-    "expected_success": true
-  },
-  {
-    "label": "settle_Pd_duplicate_observation",
-    "function": "settle",
-    "tx_hash": "0x570c5b96e5ec28e50907140892cabb613c1b78a4de8ba157d50112827efa504b",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "ERROR",
-    "error_payload": "v�e�ƭz��z�ڶ*'",
-    "latency_seconds": "9.52",
-    "expected_success": false
-  },
-  {
-    "label": "update_source_404",
-    "function": "update_source",
-    "tx_hash": "0x1e3b38fc5ca963c1e2b606643dc495c3df5e232fcfe83abd54becc8afa0295b1",
+    "tx_hash": "0x955df1c04957d8e357639c8ba0da8a60313bff2d0c245403eb36a4b5e15c7db7",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "SUCCESS",
@@ -526,105 +143,603 @@ export const TRANSACTION_MATRIX: TransactionEvidence[] = [
     "expected_success": true
   },
   {
-    "label": "settle_404_error",
+    "label": "s2_settle_policy_1",
     "function": "settle",
-    "tx_hash": "0x1711e6c7a4c3713e93cc366ac6760c46028bbb6c442a9d911b3b018814eb3390",
-    "status_name": "UNDETERMINED",
-    "result_name": "MAJORITY_DISAGREE",
-    "leader_result": "ERROR",
-    "error_payload": "\u001d4ϲ֭���m4�N",
-    "latency_seconds": "51.43",
-    "expected_success": false
-  },
-  {
-    "label": "update_source_s9",
-    "function": "update_source",
-    "tx_hash": "0x52a33f1699763721fc762c6fe778f71968fa84693e9f3a5e5d33275475e07d7e",
+    "tx_hash": "0x2b0ec573b1b5e6fa05f0a9ddecb7d8e11ec30720b7d962a3f53bec49a94d98e3",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "SUCCESS",
     "error_payload": "[object Object]",
-    "latency_seconds": "9.33",
+    "latency_seconds": "13.27",
     "expected_success": true
   },
   {
-    "label": "settle_s9_too_short",
+    "label": "s2_buy_refused_while_down_s1",
+    "function": "buy",
+    "tx_hash": "0x845382206c135e4a7834ec0c5cd71b923970d93e862e2ddb7e0ce517dfdc0a22",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "ERROR",
+    "error_payload": "z����ky�r�zk�\n޲�+�֭�˧rW���i��!j�",
+    "latency_seconds": "20.86",
+    "expected_success": false
+  },
+  {
+    "label": "s2_update_source_product_1_to_s5",
+    "function": "update_source",
+    "tx_hash": "0x96a3f72d3e3f627058691bb1e993f37c09ce5216cf108863f54aa5c8142f2401",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "SUCCESS",
+    "error_payload": "[object Object]",
+    "latency_seconds": "9.44",
+    "expected_success": true
+  },
+  {
+    "label": "s2_buy_policy_2",
+    "function": "buy",
+    "tx_hash": "0xa0bffedecf5af4a09b2b70624bf0e16eb428aaf97c42c2e6a51913cd18452e00",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "SUCCESS",
+    "error_payload": "[object Object]",
+    "latency_seconds": "20.87",
+    "expected_success": true
+  },
+  {
+    "label": "s2_settle_policy_2",
     "function": "settle",
-    "tx_hash": "0xf175fdf1898ee6d224f1a65083c516866fbd4f279cd2f22b5a2aff77892c4dde",
+    "tx_hash": "0x55c64a317015c5e558792b4b2fac068f36fcb750e9d6c96823a39789e25989ae",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "SUCCESS",
+    "error_payload": "[object Object]",
+    "latency_seconds": "13.38",
+    "expected_success": true
+  },
+  {
+    "label": "s3_update_source_s8",
+    "function": "update_source",
+    "tx_hash": "0x4298dc4865d1c174b25c2aa08f3ed0a26d95a055ccf6da325c64afea9f41c436",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "SUCCESS",
+    "error_payload": "[object Object]",
+    "latency_seconds": "5.70",
+    "expected_success": true
+  },
+  {
+    "label": "s3_buy_refused_s8",
+    "function": "buy",
+    "tx_hash": "0x0b01026d23fc9179e8bac2cb2a8fca45bfb138eca63dd457da6154b9237a0b1b",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "ERROR",
+    "error_payload": "z����ky�r�zk�\n޲�+�֭�˧rW���i��!j�",
+    "latency_seconds": "13.36",
+    "expected_success": false
+  },
+  {
+    "label": "s3_update_source_s9",
+    "function": "update_source",
+    "tx_hash": "0xb4c546e4dcf55e2367bad3fc7ecdfa9122e387a9402609eafa60cd0331d99ce9",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "SUCCESS",
+    "error_payload": "[object Object]",
+    "latency_seconds": "5.76",
+    "expected_success": true
+  },
+  {
+    "label": "s3_buy_refused_s9",
+    "function": "buy",
+    "tx_hash": "0x2e013b06fd8cd48d54a80af9ae69fbd4e9295889147e1a7c41760353f477b5f4",
     "status_name": "UNDETERMINED",
     "result_name": "MAJORITY_DISAGREE",
     "leader_result": "ERROR",
     "error_payload": "��\u001e�z�i֛�",
-    "latency_seconds": "20.82",
+    "latency_seconds": "28.68",
     "expected_success": false
   },
   {
-    "label": "update_source_mismatch",
+    "label": "s3_restore_source_s0",
     "function": "update_source",
-    "tx_hash": "0x7263927d2916767531a7d6336f1dd096129f2a54007d7d0e611d23cfdb1f79f8",
-    "status_name": "ACCEPTED",
-    "result_name": "MAJORITY_AGREE",
-    "leader_result": "ERROR",
-    "error_payload": "��-��b��-����ɚ��h��]j׿���q",
-    "latency_seconds": "9.43",
-    "expected_success": false
-  },
-  {
-    "label": "restore_source_s0",
-    "function": "update_source",
-    "tx_hash": "0x48abe2104945bc204a99abd7f2c5a52967398cd6d28bf14f7bb6d030fc1c911b",
+    "tx_hash": "0xf063b26c99f750bcc349725aebb6de3b4f4fe34ea7c234a1f63389a6db68b2b6",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "SUCCESS",
     "error_payload": "[object Object]",
-    "latency_seconds": "5.56",
+    "latency_seconds": "9.41",
     "expected_success": true
   },
   {
-    "label": "cancel_policy_Pd",
+    "label": "s3_buy_policy_3",
+    "function": "buy",
+    "tx_hash": "0x6d33addd6edd78a3825a7b3025af78430dc1db907ce7c3b1bca728314b261978",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "SUCCESS",
+    "error_payload": "[object Object]",
+    "latency_seconds": "17.06",
+    "expected_success": true
+  },
+  {
+    "label": "s4_cancel_policy_3",
     "function": "cancel",
-    "tx_hash": "0x98a4e82c54113dac6fe1b8c7c26c351b1f6ff8614f3dfa91f9a4f5a1a50dd807",
+    "tx_hash": "0xddcd9b988e3489ade41c6b8e436ccb3c11f023245fb41b99bebfffd32efcb08d",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "SUCCESS",
     "error_payload": "[object Object]",
-    "latency_seconds": "5.61",
+    "latency_seconds": "5.79",
     "expected_success": true
   },
   {
-    "label": "withdraw_unreserved",
+    "label": "s4_withdraw_unreserved",
     "function": "withdraw_unreserved",
-    "tx_hash": "0x972bca48e082540ff7893bad40202ca0d8b7e83930c7fcc3ee91dd2b4f9539bf",
+    "tx_hash": "0x944a172051c49354f4ea678c6243577060ee4a79a22e05496e7cd59724a9f068",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "SUCCESS",
     "error_payload": "[object Object]",
-    "latency_seconds": "5.54",
+    "latency_seconds": "9.60",
     "expected_success": true
   },
   {
-    "label": "withdraw_over_unreserved",
+    "label": "s4_withdraw_over_unreserved",
     "function": "withdraw_unreserved",
-    "tx_hash": "0x021bc24260223f7207dc63084acd9e9f03c21109730fc322f2a9a4cdd4439a9d",
+    "tx_hash": "0x7726333d18fae70725065c5732739944eb622bf2f973b0f00fb511d6471ff16d",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "ERROR",
     "error_payload": "�+av��{\u0017\u001ey�.���z��",
-    "latency_seconds": "9.34",
+    "latency_seconds": "9.42",
     "expected_success": false
   },
   {
-    "label": "guard_attest_Pa_paid_error",
-    "function": "attest",
-    "tx_hash": "0xc5468ec358e70ea98e2a9e7de4a953171400818c48f8fa260adb08874223ecdf",
+    "label": "s4_duplicate_observation_error",
+    "function": "settle",
+    "tx_hash": "0x8d7884a96c104d95b9894201067d64307f048636dd256ffe03ead94fd1836c46",
     "status_name": "ACCEPTED",
     "result_name": "MAJORITY_AGREE",
     "leader_result": "ERROR",
-    "error_payload": "��\\���y�� ",
-    "latency_seconds": "5.47",
+    "error_payload": "v�e�ƭz��z�ڶ*'",
+    "latency_seconds": "13.34",
+    "expected_success": false
+  },
+  {
+    "label": "s4_unknown_policy_settle",
+    "function": "settle",
+    "tx_hash": "0x11573a865d1fbb923511f8d9038ff6dea6a56ae313e33d08bdc95fb33a8b15b4",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "ERROR",
+    "error_payload": "�y'�\t�X�",
+    "latency_seconds": "9.66",
+    "expected_success": false
+  },
+  {
+    "label": "s4_unknown_policy_cancel",
+    "function": "cancel",
+    "tx_hash": "0x9ca48c25ffa65ae1d59406784f99f749b418011495e2858c30186062ecf8c1c5",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "ERROR",
+    "error_payload": "�y'�\t�X�",
+    "latency_seconds": "5.69",
+    "expected_success": false
+  },
+  {
+    "label": "s5_attest_policy_1",
+    "function": "attest",
+    "tx_hash": "0xf960e91182aeea504c9bad3177cc516aec067de87f109460c6b60915ddab0f7e",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "SUCCESS",
+    "error_payload": "[object Object]",
+    "latency_seconds": "13.35",
+    "expected_success": true
+  },
+  {
+    "label": "s5_attest_cancelled_error",
+    "function": "attest",
+    "tx_hash": "0x12e6102efef94f0cf6837384e887c8285909e93a5867528f80e94fb6e08799a8",
+    "status_name": "ACCEPTED",
+    "result_name": "MAJORITY_AGREE",
+    "leader_result": "ERROR",
+    "error_payload": "��\\���yЀ4!\u000b,@",
+    "latency_seconds": "9.52",
     "expected_success": false
   }
 ];
+export const BALANCE_SNAPSHOTS_V2: BalanceSnapshot[] = [
+  {
+    "step": "s1_claim_underwriter",
+    "underwriter": 1000,
+    "buyer": 0,
+    "pool_1_balance": 0,
+    "pool_1_reserved": 0,
+    "pool_2_balance": 0,
+    "pool_2_reserved": 0,
+    "total_minted": 1000
+  },
+  {
+    "step": "s1_claim_buyer",
+    "underwriter": 1000,
+    "buyer": 1000,
+    "pool_1_balance": 0,
+    "pool_1_reserved": 0,
+    "pool_2_balance": 0,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  },
+  {
+    "step": "s1_fund_product_1",
+    "underwriter": 600,
+    "buyer": 1000,
+    "pool_1_balance": 400,
+    "pool_1_reserved": 0,
+    "pool_2_balance": 0,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  },
+  {
+    "step": "s1_fund_product_2",
+    "underwriter": 300,
+    "buyer": 1000,
+    "pool_1_balance": 400,
+    "pool_1_reserved": 0,
+    "pool_2_balance": 300,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  },
+  {
+    "step": "s2_buy_policy_1",
+    "underwriter": 300,
+    "buyer": 990,
+    "pool_1_balance": 410,
+    "pool_1_reserved": 100,
+    "pool_2_balance": 300,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  },
+  {
+    "step": "s2_settle_policy_1",
+    "underwriter": 300,
+    "buyer": 990,
+    "pool_1_balance": 410,
+    "pool_1_reserved": 100,
+    "pool_2_balance": 300,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  },
+  {
+    "step": "s2_buy_policy_2",
+    "underwriter": 300,
+    "buyer": 985,
+    "pool_1_balance": 415,
+    "pool_1_reserved": 150,
+    "pool_2_balance": 300,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  },
+  {
+    "step": "s2_settle_policy_2",
+    "underwriter": 300,
+    "buyer": 985,
+    "pool_1_balance": 415,
+    "pool_1_reserved": 150,
+    "pool_2_balance": 300,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  },
+  {
+    "step": "s3_buy_policy_3",
+    "underwriter": 300,
+    "buyer": 980,
+    "pool_1_balance": 420,
+    "pool_1_reserved": 200,
+    "pool_2_balance": 300,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  },
+  {
+    "step": "s4_cancel_policy_3",
+    "underwriter": 300,
+    "buyer": 980,
+    "pool_1_balance": 420,
+    "pool_1_reserved": 150,
+    "pool_2_balance": 300,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  },
+  {
+    "step": "s4_withdraw_unreserved",
+    "underwriter": 350,
+    "buyer": 980,
+    "pool_1_balance": 370,
+    "pool_1_reserved": 150,
+    "pool_2_balance": 300,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  },
+  {
+    "step": "final_state",
+    "underwriter": 350,
+    "buyer": 980,
+    "pool_1_balance": 370,
+    "pool_1_reserved": 150,
+    "pool_2_balance": 300,
+    "pool_2_reserved": 0,
+    "total_minted": 2000
+  }
+];
+export const READBACKS_V2 = {
+  "product_1": {
+    "creator": "0xd34bcb236da5b2dd35849a0f3ab46d015f4c07c0",
+    "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+    "dir_path": "/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/",
+    "host": "raw.githubusercontent.com",
+    "id": "1",
+    "min_full": "60",
+    "min_half": "30",
+    "name": "Nimbus Outage Cover",
+    "policy_count": "0",
+    "pool_balance": "0",
+    "premium_bps": "1000",
+    "reserved": "0",
+    "schema_version": "1",
+    "seq": "1",
+    "source_history": [
+      "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md"
+    ],
+    "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1",
+    "url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md"
+  },
+  "product_2": {
+    "creator": "0xd34bcb236da5b2dd35849a0f3ab46d015f4c07c0",
+    "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+    "dir_path": "/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/",
+    "host": "raw.githubusercontent.com",
+    "id": "2",
+    "min_full": "120",
+    "min_half": "60",
+    "name": "Nimbus Latency Cover",
+    "policy_count": "0",
+    "pool_balance": "0",
+    "premium_bps": "1500",
+    "reserved": "0",
+    "schema_version": "1",
+    "seq": "1",
+    "source_history": [
+      "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md"
+    ],
+    "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+    "terms_hash": "822aeaa68d4e110b8d51dd2317f879ff6c9738f8bf2acade9818000095b82e62",
+    "url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md"
+  },
+  "pool_health_1_after_funding": {
+    "coverage_ratio_bps": "10000",
+    "free": "400",
+    "pool_balance": "400",
+    "product_id": "1",
+    "reserved": "0",
+    "schema_version": "1"
+  },
+  "pool_health_2_after_funding": {
+    "coverage_ratio_bps": "10000",
+    "free": "300",
+    "pool_balance": "300",
+    "product_id": "2",
+    "reserved": "0",
+    "schema_version": "1"
+  },
+  "policy_1_at_purchase": {
+    "attempts": "0",
+    "buy_norm_hash16": "4aa1659279aef945",
+    "cancel_refund": "0",
+    "coverage": "100",
+    "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+    "evidence_url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md",
+    "holder": "0x7283b82dc3efd92119937ac44a68d28fb933d4bf",
+    "id": "1",
+    "min_full": "60",
+    "min_half": "30",
+    "paid_amount": "0",
+    "payout": "0",
+    "premium": "10",
+    "premium_bps": "1000",
+    "product_id": "1",
+    "schema_version": "1",
+    "seq": "1",
+    "settlement_id": "",
+    "status": "ACTIVE",
+    "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1"
+  },
+  "product_1_after_update_to_s1": {
+    "creator": "0xd34bcb236da5b2dd35849a0f3ab46d015f4c07c0",
+    "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+    "dir_path": "/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/",
+    "host": "raw.githubusercontent.com",
+    "id": "1",
+    "min_full": "60",
+    "min_half": "30",
+    "name": "Nimbus Outage Cover",
+    "policy_count": "1",
+    "pool_balance": "410",
+    "premium_bps": "1000",
+    "reserved": "100",
+    "schema_version": "1",
+    "seq": "2",
+    "source_history": [
+      "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md",
+      "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s1-outage-75.md"
+    ],
+    "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1",
+    "url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s1-outage-75.md"
+  },
+  "policy_1_after_settle": {
+    "attempts": "1",
+    "buy_norm_hash16": "4aa1659279aef945",
+    "cancel_refund": "0",
+    "coverage": "100",
+    "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+    "evidence_url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md",
+    "holder": "0x7283b82dc3efd92119937ac44a68d28fb933d4bf",
+    "id": "1",
+    "min_full": "60",
+    "min_half": "30",
+    "paid_amount": "0",
+    "payout": "0",
+    "premium": "10",
+    "premium_bps": "1000",
+    "product_id": "1",
+    "schema_version": "1",
+    "seq": "2",
+    "settlement_id": "1",
+    "status": "ACTIVE",
+    "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1"
+  },
+  "settlement_1": {
+    "caller": "0x7283b82dc3efd92119937ac44a68d28fb933d4bf",
+    "coverage": "100",
+    "evidence_url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md",
+    "gate": "PAGE_UNCHANGED",
+    "id": "1",
+    "minutes": "0",
+    "outcome": "NO_PAY",
+    "payout": "0",
+    "policy_id": "1",
+    "product_id": "1",
+    "quote": "",
+    "schema_version": "1",
+    "status": "OPERATIONAL",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1",
+    "tripwire": false,
+    "url_used": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md"
+  },
+  "policy_2_at_purchase": {
+    "attempts": "0",
+    "buy_norm_hash16": "05edb1d1cf0d2493",
+    "cancel_refund": "0",
+    "coverage": "50",
+    "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+    "evidence_url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s5-operational-reformatted.html",
+    "holder": "0x7283b82dc3efd92119937ac44a68d28fb933d4bf",
+    "id": "2",
+    "min_full": "60",
+    "min_half": "30",
+    "paid_amount": "0",
+    "payout": "0",
+    "premium": "5",
+    "premium_bps": "1000",
+    "product_id": "1",
+    "schema_version": "1",
+    "seq": "1",
+    "settlement_id": "",
+    "status": "ACTIVE",
+    "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1"
+  },
+  "policy_2_after_settle": {
+    "attempts": "1",
+    "buy_norm_hash16": "05edb1d1cf0d2493",
+    "cancel_refund": "0",
+    "coverage": "50",
+    "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+    "evidence_url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s5-operational-reformatted.html",
+    "holder": "0x7283b82dc3efd92119937ac44a68d28fb933d4bf",
+    "id": "2",
+    "min_full": "60",
+    "min_half": "30",
+    "paid_amount": "0",
+    "payout": "0",
+    "premium": "5",
+    "premium_bps": "1000",
+    "product_id": "1",
+    "schema_version": "1",
+    "seq": "2",
+    "settlement_id": "2",
+    "status": "ACTIVE",
+    "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1"
+  },
+  "policy_3_after_cancel": {
+    "attempts": "0",
+    "buy_norm_hash16": "4aa1659279aef945",
+    "cancel_refund": "0",
+    "coverage": "50",
+    "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+    "evidence_url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md",
+    "holder": "0x7283b82dc3efd92119937ac44a68d28fb933d4bf",
+    "id": "3",
+    "min_full": "60",
+    "min_half": "30",
+    "paid_amount": "0",
+    "payout": "0",
+    "premium": "5",
+    "premium_bps": "1000",
+    "product_id": "1",
+    "schema_version": "1",
+    "seq": "2",
+    "settlement_id": "",
+    "status": "CANCELLED",
+    "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1"
+  },
+  "is_covered_policy_1": {
+    "coverage": "100",
+    "covered": "true",
+    "policy_status": "ACTIVE",
+    "product_id": "1",
+    "reason": "OK",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1"
+  },
+  "is_covered_policy_3": {
+    "coverage": "50",
+    "covered": "false",
+    "policy_status": "CANCELLED",
+    "product_id": "1",
+    "reason": "CANCELLED",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1"
+  },
+  "is_covered_for_matching": true,
+  "is_covered_for_forged": false,
+  "attestation_1": {
+    "attester": "0x7283b82dc3efd92119937ac44a68d28fb933d4bf",
+    "coverage": "100",
+    "evidence_url_hash": "c7edfdeac26d29fc33e4462b85e849a398ef1ef4ba69f21b57d8f900cac35742",
+    "id": "1",
+    "policy_id": "1",
+    "product_id": "1",
+    "schema_version": "1",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1"
+  },
+  "final_stats": {
+    "next_policy": "4",
+    "next_product": "3",
+    "next_settlement": "3",
+    "schema_version": "1",
+    "total_minted": "2000"
+  },
+  "final_limits": {
+    "demo_credits": "1000",
+    "max_coverage": "100000",
+    "max_list_limit": "20",
+    "max_page_bytes": "400000",
+    "min_coverage": "10",
+    "min_text_chars": "200",
+    "schema_version": "1"
+  }
+};
+
+// Backward compatible aliases
+export const TRANSACTION_MATRIX = TRANSACTION_MATRIX_V2;
+export const BALANCE_SNAPSHOTS = BALANCE_SNAPSHOTS_V2;
 
 export const ROBUSTNESS_ITER0: Record<string, RobustnessBatchResult> = {
   "s1": {
@@ -749,16 +864,16 @@ export const ROBUSTNESS_ITER2: Record<string, RobustnessBatchResult> = {
 export const ITER2_BATCHES: Record<string, RobustnessBatchResult> = ROBUSTNESS_ITER2;
 
 export const FINAL_STATS = {
-  "next_policy": "5",
-  "next_product": "2",
-  "next_settlement": "9",
+  "next_policy": "4",
+  "next_product": "3",
+  "next_settlement": "3",
   "schema_version": "1",
   "total_minted": "2000"
 };
 export const FINAL_POOL_HEALTH = {
   "coverage_ratio_bps": "10000",
-  "free": "415",
-  "pool_balance": "415",
+  "free": "400",
+  "pool_balance": "400",
   "product_id": "1",
   "reserved": "0",
   "schema_version": "1"

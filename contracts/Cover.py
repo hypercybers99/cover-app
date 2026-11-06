@@ -2,62 +2,30 @@
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
 import json
-import hashlib
 import re
+import hashlib
 import urllib.parse
 import ipaddress
-import html
 from genlayer import *
 
 
 # ---------------------------------------------------------------------------
-# Pure Helper Functions (Module-Level, Deterministic, Tested, Pure ASCII)
+# Constants
 # ---------------------------------------------------------------------------
 
-def clean_text(raw_bytes: bytes) -> str:
-    """Converts raw HTML or Markdown bytes into standardized text."""
-    if not raw_bytes:
-        return ""
-    try:
-        text = raw_bytes.decode("utf-8", errors="replace")
-    except Exception:
-        text = str(raw_bytes)
-    text = text.replace("\r\n", "\n").replace("\r", "\n")
-    text = text.replace("\xa0", " ")
+DECISION_RULE_V2 = "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW"
+COVERAGE_TERM_V2 = "OPEN_UNTIL_SETTLED_OR_CANCELLED"
 
-    is_html = (
-        ("<html" in text.lower())
-        or ("<!doctype" in text.lower())
-        or ("<body" in text.lower())
-        or ("<div" in text.lower())
-        or ("<p>" in text.lower())
-        or ("<p " in text.lower())
-        or ("<br" in text.lower())
-    )
-    if is_html:
-        text = re.sub(r"(?is)<script.*?>.*?</script>", " ", text)
-        text = re.sub(r"(?is)<style.*?>.*?</style>", " ", text)
-        text = re.sub(r"(?is)<noscript.*?>.*?</noscript>", " ", text)
-        text = re.sub(r"(?s)<!--.*?-->", " ", text)
-        text = re.sub(r"(?i)<br\s*/?>", "\n", text)
-        text = re.sub(
-            r"(?i)</?(?:p|div|h[1-6]|li|tr|th|td|blockquote|section|article|header|footer)\b[^>]*>",
-            "\n",
-            text,
-        )
-        text = re.sub(r"<[^>]+>", " ", text)
-        text = html.unescape(text)
-    else:
-        text = re.sub(r"```.*?```", " ", text, flags=re.DOTALL)
-        text = re.sub(r"`[^`]+`", " ", text)
-        text = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", text)
-        text = re.sub(r"(?m)^[ \t]*[#]+[ \t]*", "", text)
-        text = re.sub(r"(?m)^[ \t]*[-*+][ \t]+", "", text)
-        text = re.sub(r"(?m)^[ \t]*\d+\.[ \t]+", "", text)
-        text = re.sub(r"[*_~]", "", text)
-        text = html.unescape(text)
 
-    # Standardize unicode quotes and hyphens to ASCII
+# ---------------------------------------------------------------------------
+# Pure Helper Functions
+# ---------------------------------------------------------------------------
+
+def clean_text(body_bytes: bytes) -> str:
+    """Decode utf-8 (replace errors), strip HTML tags, standardize whitespace."""
+    raw = body_bytes.decode("utf-8", errors="replace")
+    no_html = re.sub(r"<[^>]+>", " ", raw)
+    text = re.sub(r"[ \t\r\f\v]+", " ", no_html)
     text = (
         text.replace("\u201c", "\"")
         .replace("\u201d", "\"")
@@ -157,16 +125,20 @@ def parse_extraction(text: str) -> tuple[bool, str, int, str]:
 
 
 def injection_tripwire(page_text_str: str) -> bool:
-    """True if normalized page contains prompt injection triggers."""
+    """Check for suspicious prompt injection phrases."""
     p_norm = norm_text(page_text_str)
     triggers = [
-        "ignore previous",
-        "ignore all",
-        "automated review",
-        "automated reviewer",
-        "automated reviewers",
-        "ai reviewer",
-        "language model",
+        "ignore previous instructions",
+        "ignore above instructions",
+        "disregard previous instructions",
+        "system prompt override",
+        "you are now a",
+        "output only operational",
+        "output only outage",
+        "say operational",
+        "say outage",
+        "classify as operational",
+        "classify as outage",
         "classify all",
         "classify every",
         "mark all",
@@ -202,7 +174,6 @@ def decide(status: str, minutes: int, min_full: int, min_half: int, quote_ok: bo
 def premium_for(coverage: int, premium_bps: int) -> int:
     """Integer ceiling of coverage * bps / 10000 (never zero)."""
     prod = coverage * premium_bps
-    # Ceiling division
     ans = (prod + 9999) // 10000
     if ans < 1:
         return 1
@@ -249,17 +220,36 @@ def validate_product_url(url_str: str) -> tuple[str, str]:
         raise gl.vm.UserError("bad URL: port must be 443 or omitted")
 
     path = parsed.path
-    if not path:
-        path = "/"
-    dir_path = path[:path.rfind("/") + 1]
-    if not dir_path:
+    if not path or path == "/":
         dir_path = "/"
+    else:
+        parts = path.rsplit("/", 1)
+        dir_path = parts[0] + "/"
 
     return host_lower, dir_path
 
 
+def build_terms_dict(host: str, dir_path: str, min_full: int, min_half: int, premium_bps: int) -> dict:
+    """Construct deterministic terms dictionary for canonical hashing."""
+    return {
+        "decision_rule": DECISION_RULE_V2,
+        "dir_path": dir_path,
+        "host": host,
+        "min_full": str(min_full),
+        "min_half": str(min_half),
+        "premium_bps": str(premium_bps),
+        "term": COVERAGE_TERM_V2,
+    }
+
+
+def compute_terms_hash(terms_dict: dict) -> str:
+    """SHA256 hex digest of canonical terms JSON."""
+    terms_canon = json.dumps(terms_dict, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(terms_canon.encode("utf-8")).hexdigest()
+
+
 # ---------------------------------------------------------------------------
-# Cover Intelligent Contract (Milestone 1 Core)
+# Main Contract
 # ---------------------------------------------------------------------------
 
 class Cover(gl.Contract):
@@ -274,7 +264,6 @@ class Cover(gl.Contract):
     by_product: TreeMap[str, str]
 
     def __init__(self):
-        # Do not assign TreeMap() in __init__
         pass
 
     # -----------------------------------------------------------------------
@@ -283,8 +272,7 @@ class Cover(gl.Contract):
 
     @gl.public.view
     def balance_of(self, addr: str) -> str:
-        k = addr.strip().lower()
-        return self.balances.get(k, "0")
+        return self.balances.get(addr.strip().lower(), "0")
 
     @gl.public.view
     def get_product(self, product_id: str) -> str:
@@ -427,7 +415,6 @@ class Cover(gl.Contract):
         self,
         name: str,
         url: str,
-        rule_text: str,
         min_full: int,
         min_half: int,
         premium_bps: int,
@@ -439,13 +426,6 @@ class Cover(gl.Contract):
             name.encode("ascii")
         except UnicodeEncodeError:
             raise gl.vm.UserError("bad name")
-
-        if not (10 <= len(rule_text) <= 200):
-            raise gl.vm.UserError("bad rule text")
-        try:
-            rule_text.encode("ascii")
-        except UnicodeEncodeError:
-            raise gl.vm.UserError("bad rule text")
 
         if not (2 <= min_full <= 10080):
             raise gl.vm.UserError("bad thresholds")
@@ -459,16 +439,8 @@ class Cover(gl.Contract):
         pid = self.meta.get("next_product", "1")
         self.meta["next_product"] = str(int(pid) + 1)
 
-        terms_dict = {
-            "dir_path": dir_path,
-            "host": host,
-            "min_full": str(min_full),
-            "min_half": str(min_half),
-            "premium_bps": str(premium_bps),
-            "rule_text": rule_text,
-        }
-        terms_canon = json.dumps(terms_dict, sort_keys=True, separators=(",", ":"))
-        terms_hash = hashlib.sha256(terms_canon.encode("utf-8")).hexdigest()
+        terms_dict = build_terms_dict(host, dir_path, min_full, min_half, premium_bps)
+        terms_hash = compute_terms_hash(terms_dict)
 
         prod_record = {
             "schema_version": "1",
@@ -478,7 +450,8 @@ class Cover(gl.Contract):
             "url": url,
             "host": host,
             "dir_path": dir_path,
-            "rule_text": rule_text,
+            "decision_rule": DECISION_RULE_V2,
+            "term": COVERAGE_TERM_V2,
             "min_full": str(min_full),
             "min_half": str(min_half),
             "premium_bps": str(premium_bps),
@@ -663,6 +636,7 @@ class Cover(gl.Contract):
         pol_id = self.meta.get("next_policy", "1")
         self.meta["next_policy"] = str(int(pol_id) + 1)
 
+        # Permanent purchase-time term binding
         pol_record = {
             "schema_version": "1",
             "id": pol_id,
@@ -673,6 +647,16 @@ class Cover(gl.Contract):
             "status": "ACTIVE",
             "buy_norm_hash16": nh16,
             "paid_amount": "0",
+            "payout": "0",
+            "settlement_id": "",
+            "cancel_refund": "0",
+            "terms_hash": prod["terms_hash"],
+            "evidence_url": prod["url"],
+            "decision_rule": prod["decision_rule"],
+            "min_full": prod["min_full"],
+            "min_half": prod["min_half"],
+            "premium_bps": prod["premium_bps"],
+            "term": prod["term"],
             "attempts": "0",
             "seq": "1",
         }
@@ -700,18 +684,16 @@ class Cover(gl.Contract):
         if pol["status"] != "ACTIVE":
             raise gl.vm.UserError("policy not active")
 
-        pid = pol["product_id"]
-        prod = json.loads(self.products[pid])
-
-        prod_url = prod["url"]
+        # Read strictly from policy-bound values (never product's current ones)
+        evidence_url = pol["evidence_url"]
         buy_nh16 = pol["buy_norm_hash16"]
-        min_full = int(prod["min_full"])
-        min_half = int(prod["min_half"])
+        min_full = int(pol["min_full"])
+        min_half = int(pol["min_half"])
         coverage = int(pol["coverage"])
 
         def run_eval() -> dict:
             try:
-                res = gl.nondet.web.get(prod_url)
+                res = gl.nondet.web.get(evidence_url)
             except Exception:
                 raise gl.vm.UserError("source unreachable")
             status_code = int(res.status)
@@ -728,36 +710,32 @@ class Cover(gl.Contract):
                 raise gl.vm.UserError("page unreadable")
 
             curr_norm_hash = norm_hash(cleaned)
-            curr_nh16 = curr_norm_hash[:16]
+            nh16 = curr_norm_hash[:16]
 
-            # Gate: PAGE_UNCHANGED
-            if curr_nh16 == buy_nh16:
+            # Gate: duplicate observation check against purchase-time content
+            if nh16 == buy_nh16:
                 return {
                     "outcome": "NO_PAY",
-                    "norm_hash16": curr_nh16,
+                    "gate": "PAGE_UNCHANGED",
                     "status": "OPERATIONAL",
                     "minutes": 0,
                     "quote": "",
-                    "gate": "PAGE_UNCHANGED",
                     "tripwire": False,
-                    "token": f"NO_PAY|{curr_nh16}",
+                    "norm_hash16": nh16,
                 }
 
-            # Gate: Tripwire
-            has_tripwire = injection_tripwire(cleaned)
-            if has_tripwire:
+            tripwire = injection_tripwire(cleaned)
+            if tripwire:
                 return {
                     "outcome": "REVIEW",
-                    "norm_hash16": curr_nh16,
+                    "gate": "TRIPWIRE",
                     "status": "UNCLEAR",
                     "minutes": 0,
                     "quote": "",
-                    "gate": "TRIPWIRE",
                     "tripwire": True,
-                    "token": f"REVIEW|{curr_nh16}",
+                    "norm_hash16": nh16,
                 }
 
-            # Judged evaluation via LLM
             prompt_obj = {
                 "instructions": (
                     "You are an automated status page incident extractor. "
@@ -781,29 +759,27 @@ class Cover(gl.Contract):
             if not valid:
                 return {
                     "outcome": "REVIEW",
-                    "norm_hash16": curr_nh16,
+                    "gate": "PARSE_FAILURE",
                     "status": "UNCLEAR",
                     "minutes": 0,
                     "quote": "",
-                    "gate": "PARSE_FAILURE",
                     "tripwire": False,
-                    "token": f"REVIEW|{curr_nh16}",
+                    "norm_hash16": nh16,
                 }
 
             q_ok = quote_in_page(q, cleaned)
             if m > 0 and not number_in_quote(q, m):
                 q_ok = False
 
-            outcome = decide(st, m, min_full, min_half, q_ok, has_tripwire)
+            outcome = decide(st, m, min_full, min_half, q_ok, False)
             return {
                 "outcome": outcome,
-                "norm_hash16": curr_nh16,
+                "gate": "JUDGED",
                 "status": st,
                 "minutes": m,
                 "quote": q,
-                "gate": "JUDGED",
-                "tripwire": has_tripwire,
-                "token": f"{outcome}|{curr_nh16}",
+                "tripwire": False,
+                "norm_hash16": nh16,
             }
 
         def leader_fn() -> str:
@@ -816,14 +792,23 @@ class Cover(gl.Contract):
             try:
                 ldata = json.loads(leader_res.calldata)
                 my_eval = run_eval()
-                return my_eval["token"] == ldata.get("token")
+                return (
+                    my_eval["outcome"] == ldata.get("outcome")
+                    and my_eval["gate"] == ldata.get("gate")
+                    and my_eval["status"] == ldata.get("status")
+                    and my_eval["norm_hash16"] == ldata.get("norm_hash16")
+                )
             except Exception:
                 return False
 
         eval_res_json = gl.vm.run_nondet(leader_fn, validator_fn)
         eval_dict = json.loads(eval_res_json)
-
         outcome = eval_dict["outcome"]
+        gate = eval_dict["gate"]
+        st = eval_dict["status"]
+        m = eval_dict["minutes"]
+        q = eval_dict["quote"]
+        tripwire = eval_dict["tripwire"]
         curr_nh16 = eval_dict["norm_hash16"]
 
         # Duplicate observation check: sha256(policy_id|norm_hash16)
@@ -836,65 +821,82 @@ class Cover(gl.Contract):
         self.meta["next_settlement"] = str(int(sid) + 1)
         self.seen[obs_key] = sid
 
-        # Increment policy attempts
-        pol["attempts"] = str(int(pol.get("attempts", "0")) + 1)
-        holder = pol["holder"]
+        pid = pol["product_id"]
+        prod = json.loads(self.products[pid])
 
         payout = 0
-        if outcome == "PAY_100":
-            payout = payout_for(coverage, 100)
-        elif outcome == "PAY_50":
-            payout = payout_for(coverage, 50)
-        elif outcome == "PAY_25":
-            payout = payout_for(coverage, 25)
-
         if outcome in ["PAY_100", "PAY_50", "PAY_25"]:
-            # State mutation on payout
+            pct = 100 if outcome == "PAY_100" else (50 if outcome == "PAY_50" else 25)
+            payout = payout_for(coverage, pct)
+
             pol["status"] = "PAID"
             pol["paid_amount"] = str(payout)
-            prod["pool_balance"] = str(int(prod["pool_balance"]) - payout)
+            pol["payout"] = str(payout)
+            pol["settlement_id"] = sid
+
+            # Release reserved liquidity and deduct payout
             prod["reserved"] = str(int(prod["reserved"]) - coverage)
+            prod["pool_balance"] = str(int(prod["pool_balance"]) - payout)
+            self.products[pid] = json.dumps(prod, sort_keys=True, separators=(",", ":"))
+
+            # Credit payout to policy holder
+            holder = pol["holder"]
             self.balances[holder] = str(int(self.balances.get(holder, "0")) + payout)
+        elif outcome in ["NO_PAY", "REVIEW"]:
+            pol["settlement_id"] = sid
+            pol["attempts"] = str(int(pol.get("attempts", "0")) + 1)
 
+        pol["seq"] = str(int(pol.get("seq", "1")) + 1)
         self.policies[pol_id] = json.dumps(pol, sort_keys=True, separators=(",", ":"))
-        self.products[pid] = json.dumps(prod, sort_keys=True, separators=(",", ":"))
 
+        # Write rich settlement record
         settlement_record = {
             "schema_version": "1",
             "id": sid,
             "policy_id": pol_id,
+            "product_id": pid,
             "caller": caller,
-            "url_used": prod_url,
+            "terms_hash": pol["terms_hash"],
+            "evidence_url": evidence_url,
+            "url_used": evidence_url,
+            "coverage": str(coverage),
+            "payout": str(payout),
+            "status": st,
+            "minutes": str(m),
+            "quote": q,
             "outcome": outcome,
-            "norm_hash16": curr_nh16,
-            "status": eval_dict.get("status", ""),
-            "minutes": str(eval_dict.get("minutes", 0)),
-            "quote": eval_dict.get("quote", ""),
-            "gate": eval_dict.get("gate", ""),
-            "tripwire": eval_dict.get("tripwire", False),
-            "leader_reported": "true",
-            "seq": "1",
+            "gate": gate,
+            "tripwire": tripwire,
         }
         self.settlements[sid] = json.dumps(settlement_record, sort_keys=True, separators=(",", ":"))
+
         return outcome
 
     @gl.public.write
     def cancel(self, policy_id: str) -> None:
-        sender = gl.message.sender_address.as_hex.lower()
+        caller = gl.message.sender_address.as_hex.lower()
         pol_id = str(policy_id).strip()
         if pol_id not in self.policies:
             raise gl.vm.UserError("unknown policy")
+
         pol = json.loads(self.policies[pol_id])
-        if pol["holder"] != sender:
-            raise gl.vm.UserError("not holder")
         if pol["status"] != "ACTIVE":
             raise gl.vm.UserError("policy not active")
+        if pol["holder"] != caller:
+            raise gl.vm.UserError("not holder")
 
-        pol["status"] = "CANCELLED"
         coverage = int(pol["coverage"])
         pid = pol["product_id"]
         prod = json.loads(self.products[pid])
-        prod["reserved"] = str(int(prod["reserved"]) - coverage)
 
-        self.policies[pol_id] = json.dumps(pol, sort_keys=True, separators=(",", ":"))
+        # Release reserved liquidity back to free pool
+        prod["reserved"] = str(int(prod["reserved"]) - coverage)
         self.products[pid] = json.dumps(prod, sort_keys=True, separators=(",", ":"))
+
+        pol["status"] = "CANCELLED"
+        pol["cancel_refund"] = "0"
+        pol["seq"] = str(int(pol.get("seq", "1")) + 1)
+        self.policies[pol_id] = json.dumps(pol, sort_keys=True, separators=(",", ":"))
+
+
+CoverV2 = Cover

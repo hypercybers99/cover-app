@@ -1,10 +1,10 @@
 {
   "_meta": {
     "source_repo": "https://github.com/hypercybers99/cover-genlayer",
-    "source_tag": "cover-v1-final",
-    "source_commit": "de8ca897d2c0ad449facba25739f631292209e65",
+    "source_tag": "cover-v2",
+    "source_commit": "f641d80b2e3108fcd614efd8a5dd8b76270ad162",
     "source_path": "docs/evidence/robustness/iter2/summary.json",
-    "synced_at": "2026-11-01T04:05:53.383Z"
+    "synced_at": "2026-11-06T12:01:54.573Z"
   },
   "data": {
     "contract_address": "0x3c302641001E563ce20d4ea6376f9BfA10165877",

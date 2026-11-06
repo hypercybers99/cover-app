@@ -2,6 +2,7 @@
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
 import json
+import hashlib
 from genlayer import *
 
 
@@ -35,54 +36,62 @@ class CoverGuard(gl.Contract):
                 "policy_status": "",
                 "coverage": "0",
                 "product_id": "",
+                "terms_hash": "",
             }
             return json.dumps(res, sort_keys=True, separators=(",", ":"))
+
+        th = pol.get("terms_hash", "")
+        pr_id = pol.get("product_id", "")
+        cov = pol.get("coverage", "0")
+        st = pol.get("status", "")
 
         if pol.get("holder", "").lower() != h:
             res = {
                 "covered": "false",
                 "reason": "NOT_HOLDER",
-                "policy_status": pol.get("status", ""),
-                "coverage": pol.get("coverage", "0"),
-                "product_id": pol.get("product_id", ""),
+                "policy_status": st,
+                "coverage": cov,
+                "product_id": pr_id,
+                "terms_hash": th,
             }
             return json.dumps(res, sort_keys=True, separators=(",", ":"))
 
-        status = pol.get("status", "")
-        if status == "PAID":
+        if st == "PAID":
             res = {
                 "covered": "false",
                 "reason": "PAID",
-                "policy_status": status,
-                "coverage": pol.get("coverage", "0"),
-                "product_id": pol.get("product_id", ""),
+                "policy_status": st,
+                "coverage": cov,
+                "product_id": pr_id,
+                "terms_hash": th,
             }
             return json.dumps(res, sort_keys=True, separators=(",", ":"))
 
-        if status == "CANCELLED":
+        if st == "CANCELLED":
             res = {
                 "covered": "false",
                 "reason": "CANCELLED",
-                "policy_status": status,
-                "coverage": pol.get("coverage", "0"),
-                "product_id": pol.get("product_id", ""),
+                "policy_status": st,
+                "coverage": cov,
+                "product_id": pr_id,
+                "terms_hash": th,
             }
             return json.dumps(res, sort_keys=True, separators=(",", ":"))
 
         # Check pool health
-        pr_id = pol.get("product_id", "")
         try:
             health_raw = cover_contract.view().pool_health(pr_id)
             health = json.loads(health_raw)
             pb = int(health.get("pool_balance", "0"))
-            cov = int(pol.get("coverage", "0"))
-            if pb < cov:
+            cov_int = int(cov)
+            if pb < cov_int:
                 res = {
                     "covered": "false",
                     "reason": "POOL_SHORT",
-                    "policy_status": status,
-                    "coverage": str(cov),
+                    "policy_status": st,
+                    "coverage": cov,
                     "product_id": pr_id,
+                    "terms_hash": th,
                 }
                 return json.dumps(res, sort_keys=True, separators=(",", ":"))
         except Exception:
@@ -91,9 +100,10 @@ class CoverGuard(gl.Contract):
         res = {
             "covered": "true",
             "reason": "OK",
-            "policy_status": status,
-            "coverage": pol.get("coverage", "0"),
+            "policy_status": st,
+            "coverage": cov,
             "product_id": pr_id,
+            "terms_hash": th,
         }
         return json.dumps(res, sort_keys=True, separators=(",", ":"))
 
@@ -126,14 +136,20 @@ class CoverGuard(gl.Contract):
         if pol.get("status", "") != "ACTIVE":
             return False
 
+        # Verify against purchase-time terms_hash on the policy
+        if pol.get("terms_hash", "") != terms_hash:
+            return False
+
         cov = int(pol.get("coverage", "0"))
         if cov < min_coverage:
             return False
 
+        # Pool health check
         try:
-            prod_raw = cover_contract.view().get_product(pr_id)
-            prod = json.loads(prod_raw)
-            if prod.get("terms_hash", "") != terms_hash:
+            health_raw = cover_contract.view().pool_health(pr_id)
+            health = json.loads(health_raw)
+            pb = int(health.get("pool_balance", "0"))
+            if pb < cov:
                 return False
         except Exception:
             return False
@@ -182,11 +198,11 @@ class CoverGuard(gl.Contract):
         pol = json.loads(pol_raw)
         pr_id = pol["product_id"]
 
-        prod_raw = cover_contract.view().get_product(pr_id)
-        prod = json.loads(prod_raw)
-
         aid = self.meta.get("next_attestation", "1")
         self.meta["next_attestation"] = str(int(aid) + 1)
+
+        ev_url = pol.get("evidence_url", "")
+        ev_hash = hashlib.sha256(ev_url.encode("utf-8")).hexdigest()
 
         record = {
             "schema_version": "1",
@@ -195,7 +211,8 @@ class CoverGuard(gl.Contract):
             "policy_id": pid,
             "product_id": pr_id,
             "coverage": pol["coverage"],
-            "terms_hash": prod["terms_hash"],
+            "terms_hash": pol["terms_hash"],
+            "evidence_url_hash": ev_hash,
         }
         self.attestations[aid] = json.dumps(record, sort_keys=True, separators=(",", ":"))
 
@@ -204,3 +221,6 @@ class CoverGuard(gl.Contract):
         self.attester_history[sender] = json.dumps(hist[:50])
 
         return aid
+
+
+CoverGuardV2 = CoverGuard

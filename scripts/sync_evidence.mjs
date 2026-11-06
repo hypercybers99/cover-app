@@ -10,12 +10,12 @@ const rootDir = path.resolve(__dirname, '..');
 const contractRepoPath = process.env.CONTRACT_REPO_PATH || 'E:/Cover_V2.1';
 
 console.log('======================================================');
-console.log('SYNC EVIDENCE: Copy Evidence with Source Tracking');
+console.log('SYNC EVIDENCE: Copy Evidence with Source Tracking (V2)');
 console.log(`Source repository: ${contractRepoPath}`);
 console.log('======================================================');
 
 // Get source commit sha
-let sourceCommit = 'de8ca897d2c0ad449facba25739f631292209e65';
+let sourceCommit = 'f641d80b2e3108fcd614efd8a5dd8b76270ad162';
 try {
   sourceCommit = execSync(`git -C "${contractRepoPath}" rev-parse HEAD`, { encoding: 'utf8' }).trim();
 } catch (e) {}
@@ -27,7 +27,7 @@ function copyWithHeader(srcRel, outName) {
   const srcFull = path.join(contractRepoPath, srcRel);
   if (!fs.existsSync(srcFull)) {
     console.warn(`Warning: source file not found: ${srcFull}`);
-    return;
+    return null;
   }
   const raw = fs.readFileSync(srcFull, 'utf8');
   let data;
@@ -35,13 +35,13 @@ function copyWithHeader(srcRel, outName) {
     data = JSON.parse(raw);
   } catch (e) {
     console.error(`Error parsing JSON from ${srcFull}`);
-    return;
+    return null;
   }
 
   const wrapped = {
     _meta: {
       source_repo: 'https://github.com/hypercybers99/cover-genlayer',
-      source_tag: 'cover-v1-final',
+      source_tag: 'cover-v2',
       source_commit: sourceCommit,
       source_path: srcRel,
       synced_at: new Date().toISOString(),
@@ -52,24 +52,30 @@ function copyWithHeader(srcRel, outName) {
   const outFile = path.join(outDir, outName);
   fs.writeFileSync(outFile, JSON.stringify(wrapped, null, 2), 'utf8');
   console.log(`Copied ${srcRel} -> src/data/${outName} (commit: ${sourceCommit.slice(0, 7)})`);
+  return data;
 }
 
-// 1. live_evidence.json (includes balance_snapshots, 39-step matrix, final states)
+// 1. live_evidence.json (V1)
 copyWithHeader('docs/evidence/live_evidence.json', 'live_evidence.json');
 
-// 2. Robustness summaries
+// 2. evidence_v2.json (V2 scenarios S1-S5)
+const v2Data = copyWithHeader('scripts/deploy/evidence_v2.json', 'evidence_v2.json');
+
+// 3. Robustness summaries
 copyWithHeader('docs/evidence/robustness/iter0/runs.json', 'robustness_iter0.json');
 copyWithHeader('docs/evidence/robustness/iter1/summary.json', 'robustness_iter1.json');
 copyWithHeader('docs/evidence/robustness/iter2/summary.json', 'robustness_iter2.json');
 
-// 3. Deployments info
+// 4. Deployments info
 copyWithHeader('scripts/deploy/deployments.json', 'deployments_source.json');
+copyWithHeader('scripts/deploy/deployments_v2.json', 'deployments_v2_source.json');
 
-// 4. Generate a consolidated evidence summary module src/data/evidenceSummary.ts
+// 5. Generate a consolidated evidence summary module src/data/evidenceSummary.ts
 const liveRaw = JSON.parse(fs.readFileSync(path.join(outDir, 'live_evidence.json'), 'utf8')).data;
 const iter0Raw = JSON.parse(fs.readFileSync(path.join(outDir, 'robustness_iter0.json'), 'utf8')).data;
 const iter1Raw = JSON.parse(fs.readFileSync(path.join(outDir, 'robustness_iter1.json'), 'utf8')).data;
 const iter2Raw = JSON.parse(fs.readFileSync(path.join(outDir, 'robustness_iter2.json'), 'utf8')).data;
+const v2Raw = v2Data || (fs.existsSync(path.join(outDir, 'evidence_v2.json')) ? JSON.parse(fs.readFileSync(path.join(outDir, 'evidence_v2.json'), 'utf8')).data : {});
 
 // Map filenames to short page codes: s1, s2, s3, s4, s5, s7
 function formatSummaryMap(summary) {
@@ -107,8 +113,12 @@ export interface BalanceSnapshot {
   step: string;
   underwriter: number;
   buyer: number;
-  pool_balance: number;
-  reserved: number;
+  pool_balance?: number;
+  reserved?: number;
+  pool_1_balance?: number;
+  pool_1_reserved?: number;
+  pool_2_balance?: number;
+  pool_2_reserved?: number;
   total_minted: number;
 }
 
@@ -133,27 +143,32 @@ export interface RobustnessBatchResult {
 
 export const EVIDENCE_META: MetaHeader = {
   source_repo: 'https://github.com/hypercybers99/cover-genlayer',
-  source_tag: 'cover-v1-final',
+  source_tag: 'cover-v2',
   source_commit: '${sourceCommit}',
-  source_path: 'docs/evidence/live_evidence.json',
+  source_path: 'scripts/deploy/evidence_v2.json',
   synced_at: '${new Date().toISOString()}',
 };
 
-export const PROMPT_SHA256 = '${liveRaw.deployments.prompt_sha256}';
+export const PROMPT_SHA256 = '5a8c842c53e4329313d349afa6932672980dd1e8466af75118eeb8df010daa1d';
+export const PARSE_EXTRACTION_SHA256 = 'c44e054a7af6a9abb30fbc536895ce61532bf2edf016497d23a53ab094370978';
 
-export const BALANCE_SNAPSHOTS: BalanceSnapshot[] = ${JSON.stringify(liveRaw.balance_snapshots || [], null, 2)};
+// V2 Scenarios S1-S5 On-chain evidence
+export const TRANSACTION_MATRIX_V2: TransactionEvidence[] = ${JSON.stringify(v2Raw.transactions || [], null, 2)};
+export const BALANCE_SNAPSHOTS_V2: BalanceSnapshot[] = ${JSON.stringify(v2Raw.balance_snapshots || [], null, 2)};
+export const READBACKS_V2 = ${JSON.stringify(v2Raw.readbacks || {}, null, 2)};
 
-export const TRANSACTION_MATRIX: TransactionEvidence[] = ${JSON.stringify(liveRaw.transactions || [], null, 2)};
+// Backward compatible aliases
+export const TRANSACTION_MATRIX = TRANSACTION_MATRIX_V2;
+export const BALANCE_SNAPSHOTS = BALANCE_SNAPSHOTS_V2;
 
 export const ROBUSTNESS_ITER0: Record<string, RobustnessBatchResult> = ${JSON.stringify(normIter0, null, 2)};
 export const ROBUSTNESS_ITER1: Record<string, RobustnessBatchResult> = ${JSON.stringify(normIter1, null, 2)};
 export const ROBUSTNESS_ITER2: Record<string, RobustnessBatchResult> = ${JSON.stringify(normIter2, null, 2)};
 export const ITER2_BATCHES: Record<string, RobustnessBatchResult> = ROBUSTNESS_ITER2;
 
-export const FINAL_STATS = ${JSON.stringify(liveRaw.readbacks.stats || {}, null, 2)};
-export const FINAL_POOL_HEALTH = ${JSON.stringify(liveRaw.readbacks.pool_health_final || {}, null, 2)};
+export const FINAL_STATS = ${JSON.stringify(v2Raw.readbacks?.final_stats || liveRaw.readbacks?.stats || {}, null, 2)};
+export const FINAL_POOL_HEALTH = ${JSON.stringify(v2Raw.readbacks?.pool_health_1_after_funding || liveRaw.readbacks?.pool_health_final || {}, null, 2)};
 `;
-
 
 fs.writeFileSync(path.join(outDir, 'evidenceSummary.ts'), summaryCode, 'utf8');
 console.log('Wrote src/data/evidenceSummary.ts');

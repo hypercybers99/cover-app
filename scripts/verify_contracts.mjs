@@ -56,18 +56,18 @@ async function main() {
 
   console.log('\n--- 1. Local File Hashes ---');
   console.log(`Cover.py local SHA-256:      ${localCoverSha}`);
-  console.log(`  Starts with a1f8ceb8:      ${localCoverSha.startsWith('a1f8ceb8')}`);
+  console.log(`  Starts with 0b2f91d2:      ${localCoverSha.startsWith('0b2f91d2')}`);
   console.log(`  Matches deployments.ts:    ${localCoverSha === configCoverSha}`);
 
   console.log(`CoverGuard.py local SHA-256: ${localGuardSha}`);
-  console.log(`  Starts with b2682e9e:      ${localGuardSha.startsWith('b2682e9e')}`);
+  console.log(`  Starts with e0546c62:      ${localGuardSha.startsWith('e0546c62')}`);
   console.log(`  Matches deployments.ts:    ${localGuardSha === configGuardSha}`);
 
-  if (!localCoverSha.startsWith('a1f8ceb8') || localCoverSha !== configCoverSha) {
+  if (!localCoverSha.startsWith('0b2f91d2') || localCoverSha !== configCoverSha) {
     console.error('FAILED: Cover.py hash assertion failure!');
     process.exit(1);
   }
-  if (!localGuardSha.startsWith('b2682e9e') || localGuardSha !== configGuardSha) {
+  if (!localGuardSha.startsWith('e0546c62') || localGuardSha !== configGuardSha) {
     console.error('FAILED: CoverGuard.py hash assertion failure!');
     process.exit(1);
   }
