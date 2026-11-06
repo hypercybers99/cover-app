@@ -2,12 +2,37 @@
   "step": "6a_update_source",
   "caller": "0xD81f343599C5439748e32ec28128E8f9E2B1d8cF",
   "function": "update_source",
-  "product_id": "2",
+  "product_id": "5",
   "new_url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s1-outage-75.md",
-  "tx_hash": "0x2de6cad6f3b591d6a33e4107bad84503e3754f9729bd551e9cd1d4db16518c1b",
+  "tx_hash": "0xfd4212816a3165358268f162dfd76c726f1ad663faca5a47e7d6ce33824f179f",
   "status_name": "ACCEPTED",
   "result_name": "MAJORITY_AGREE",
   "leader_result": "SUCCESS",
   "classification": "SUCCESS",
-  "elapsed_seconds": 5.48
+  "elapsed_seconds": 8.6,
+  "product_snapshot": {
+    "creator": "0xd81f343599c5439748e32ec28128e8f9e2b1d8cf",
+    "decision_rule": "OUTAGE >= min_full minutes: 100% | OUTAGE >= min_half: 50% | DEGRADED >= min_full: 25% | otherwise 0%; unreadable or unclear: REVIEW",
+    "dir_path": "/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/",
+    "host": "raw.githubusercontent.com",
+    "id": "5",
+    "min_full": "60",
+    "min_half": "30",
+    "name": "App E2E Cloud Cover",
+    "policy_count": "1",
+    "pool_balance": "310",
+    "premium_bps": "1000",
+    "reserved": "100",
+    "schema_version": "1",
+    "seq": "2",
+    "source_history": [
+      "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md",
+      "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s1-outage-75.md"
+    ],
+    "term": "OPEN_UNTIL_SETTLED_OR_CANCELLED",
+    "terms_hash": "8368347393c32f3c9e6df4813844cbcfad194ebecba975144f6d05175912c8f1",
+    "url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s1-outage-75.md"
+  },
+  "policy_pinned_url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md",
+  "binding_intact": true
 }

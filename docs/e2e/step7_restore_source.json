@@ -1,0 +1,13 @@
+{
+  "step": "7_restore_source",
+  "caller": "0xD81f343599C5439748e32ec28128E8f9E2B1d8cF",
+  "function": "update_source",
+  "product_id": "5",
+  "new_url": "https://raw.githubusercontent.com/hypercybers99/cover-fixtures/92c69bc636517656b9e7ee031a503adfb2d26bb4/status-s0-operational.md",
+  "tx_hash": "0xb7f5f3b17dc20550b1266c4999930522fea7342259c71c7ef970d61c9e8c31fa",
+  "status_name": "ACCEPTED",
+  "result_name": "MAJORITY_AGREE",
+  "leader_result": "SUCCESS",
+  "classification": "SUCCESS",
+  "elapsed_seconds": 5.29
+}

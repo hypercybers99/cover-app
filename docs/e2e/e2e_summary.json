@@ -1,134 +1,160 @@
 {
-  "write_attempts": 10,
-  "write_successes": 10,
+  "contracts": {
+    "cover": "0x3d2698cED9292689f68b401e888fbA1d18CBfdE3",
+    "coverGuard": "0xfEebb7147Dd65b5EbEa7C6634ed4549B45993A1A"
+  },
+  "write_attempts": 12,
+  "write_successes": 12,
   "write_failures": 0,
   "writes": [
     {
       "file": "step1_claim_credits.json",
       "step": "1_claim_credits",
       "function": "claim_demo_credits",
-      "tx_hash": "0xdc02877b869e3f9fd5384205c30a933bb0a3d1504ab421ad8e1e3cd2574966e8",
+      "tx_hash": "0xee0de579ee5dcbd801b911b573f8b8bb8901b1361c18a21725390edd122c946c",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
-      "elapsed_seconds": 8.69
+      "elapsed_seconds": 9.17
     },
     {
       "file": "step2_create_product.json",
       "step": "2_create_product",
       "function": "create_product",
-      "tx_hash": "0x1910f442d04b746b18a89b2d6f20c919a49769b515c24459f50d04bc3e0afdc2",
+      "tx_hash": "0xf987c3c6119130d2d61b4de130e440c9740fc45fdeed8401c0226da30127bf21",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
-      "elapsed_seconds": 8.61
+      "elapsed_seconds": 8.82
     },
     {
       "file": "step3_fund_product.json",
       "step": "3_fund_product",
       "function": "fund_product",
-      "tx_hash": "0x1b197eecbf3faa8905948dc594bde97b74e7de957f2a90f1178a4b540d340a3a",
+      "tx_hash": "0xab1b88540d63656c3330be708f15d746a3266d77b5af5492d1cce2df5d8a646d",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
-      "elapsed_seconds": 5.44
+      "elapsed_seconds": 5.34
     },
     {
       "file": "step5_buy_cover.json",
       "step": "5_buy_cover",
       "function": "buy",
-      "tx_hash": "0x40e8f1e15fb5161f63a67875163a6748ddc692bb276ab8a27dfc67237fa85fc2",
+      "tx_hash": "0x600f5596ab06e016690d9afe92610c392bbc275224c51f86535574c67d29c24f",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
-      "elapsed_seconds": 15.34
+      "elapsed_seconds": 25.36
     },
     {
       "file": "step6_settle_policy.json",
       "step": "6_settle_policy",
       "function": "settle",
-      "tx_hash": "0xffdfb56133ef17db11712224a94c48eac3c8d87100a4564874f90b266b7ab18b",
+      "tx_hash": "0x56e621bb459a16030e5fd8dab8a543a1db3bdd67ba03ce0634cf49e5251bfda9",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
-      "elapsed_seconds": 18.59
+      "elapsed_seconds": 8.7
     },
     {
       "file": "step6_update_source.json",
       "step": "6a_update_source",
       "function": "update_source",
-      "tx_hash": "0x2de6cad6f3b591d6a33e4107bad84503e3754f9729bd551e9cd1d4db16518c1b",
+      "tx_hash": "0xfd4212816a3165358268f162dfd76c726f1ad663faca5a47e7d6ce33824f179f",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
-      "elapsed_seconds": 5.48
+      "elapsed_seconds": 8.6
     },
     {
       "file": "step7_buy_second.json",
-      "step": "7_buy_second_policy",
-      "function": "buy_policy",
-      "tx_hash": "0x50569ecf959f0d52e14045282e8050f1fb2887f6bc8914348b4f618c761c9f72",
+      "step": "7a_buy_second",
+      "function": "buy",
+      "tx_hash": "0x616071bf099a315df1177eddd282ad99a48f215743fb37406480c91435367e4b",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
-      "elapsed_seconds": 12
+      "elapsed_seconds": 18.66
     },
     {
       "file": "step7_cancel_policy.json",
       "step": "7_cancel_policy",
       "function": "cancel",
-      "tx_hash": "0xbc4742a69a1a2ac3ac2dd9d2a35cb8fd6623327f3e3f4baf9b30da2b27725302",
+      "tx_hash": "0x67a51b92263ed7a42ab672f688a400d9b4841a9a483dbd812e9e421e899a0679",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
-      "elapsed_seconds": 12.01
+      "elapsed_seconds": 5.34
+    },
+    {
+      "file": "step7_restore_source.json",
+      "step": "7_restore_source",
+      "function": "update_source",
+      "tx_hash": "0xb7f5f3b17dc20550b1266c4999930522fea7342259c71c7ef970d61c9e8c31fa",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 5.29
     },
     {
       "file": "step8_withdraw.json",
       "step": "8_withdraw_unreserved",
       "function": "withdraw_unreserved",
-      "tx_hash": "0xa4d33aca2e5b519a59b3aed87f8c38518b744547ce9de5348c9d11869727bc01",
+      "tx_hash": "0xa27cbc555bf64cc10ee981b33d04a324a2e916971d48c79d5ec4ab27fa27f462",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
-      "elapsed_seconds": 8.61
+      "elapsed_seconds": 5.29
+    },
+    {
+      "file": "step9_buy_third.json",
+      "step": "9a_buy_third",
+      "function": "buy",
+      "tx_hash": "0x79e37d0f6b69ce1e23a988025dacc4687e69e56375d7da585d155d8da04836fb",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 18.56
     },
     {
       "file": "step9_coverguard.json",
       "step": "9_coverguard",
-      "function": "attest",
-      "tx_hash": "0x8443c18b9185cf0c2d456028bcd0a5d5bd454e949126e3495ebf35b6d09fdd8c",
+      "function": "write",
+      "tx_hash": "0xec08176da36c0c5be7c039f0e64cdf037129333f343dba155ab303ac92ad3e7e",
       "status_name": "ACCEPTED",
       "result_name": "MAJORITY_AGREE",
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
-      "elapsed_seconds": 8.55
+      "elapsed_seconds": 8.58
     }
   ],
   "reads_no_tx": [
     {
       "step": "4_quote_premium",
       "function": "quote_premium",
-      "result": "Quoted 10 CR, formula ceiling 10 CR, charged 10 CR on buy (exact match)"
+      "result": "Quoted 10 CR, formula ceiling 10 CR, charged 10 CR (exact match)"
     },
     {
       "step": "9_coverguard_views",
       "function": "is_covered & is_covered_for",
-      "result": "Policy 5 (PAID): covered=false; Policy 6 (CANCELLED): covered=false; Policy 7 (ACTIVE): covered=true, is_covered_for(50)=true, is_covered_for(100)=false"
+      "result": "Policy 8: covered=true (OK); Policy 9: covered=false (CANCELLED); Policy 10: covered=true (OK); is_covered_for(50)=true; is_covered_for(100)=false; is_covered_for(wrong_terms)=false"
     },
     {
       "step": "9_list_attestations",
       "function": "list_attestations",
-      "result": "Retrieved on-chain attestation record for Policy 7"
+      "result": "Retrieved 1 on-chain attestation record(s) for Policy 10"
     }
   ]
 }

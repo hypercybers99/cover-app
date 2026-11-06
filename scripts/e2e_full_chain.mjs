@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient, chains, createAccount, generatePrivateKey } from 'genlayer-js';
 import { DEPLOYMENTS, NETWORK } from '../src/config/deployments.js';
-import { classifyReceipt } from '../src/lib/receipts.js';
+import { classifyReceipt, extractProductIdFromReceipt } from '../src/lib/receipts.js';
 import {
   claimDemoCredits,
   createProduct,
@@ -63,14 +63,6 @@ function getOrGenerateKeys() {
     buyerKey = matchBuyer[1].trim();
   }
 
-  // Backwards compatibility with previous E2E_PRIVATE_KEY
-  if (!creatorKey) {
-    const matchLegacy = envContent.match(/E2E_PRIVATE_KEY=([^\r\n]+)/);
-    if (matchLegacy && matchLegacy[1].trim() && matchLegacy[1].trim() !== 'undefined') {
-      creatorKey = matchLegacy[1].trim();
-    }
-  }
-
   let updated = false;
   if (!creatorKey) {
     creatorKey = generatePrivateKey();
@@ -97,7 +89,7 @@ async function retry(fn, label, maxRetries = 3) {
       return await fn();
     } catch (err) {
       lastErr = err;
-      console.warn(`[Retry ${i}/${maxRetries}] ${label} failed:`, err?.message || err);
+      console.warn(`[Retry ${i}/${maxRetries}] ${label} encountered error:`, err?.message || err);
       if (i < maxRetries) await new Promise((r) => setTimeout(r, 4000));
     }
   }
@@ -110,21 +102,20 @@ async function retry(fn, label, maxRetries = 3) {
 
 async function main() {
   console.log('======================================================');
-  console.log('E2E FULL CHAIN STUDIONET EXECUTION');
+  console.log('E2E FULL CHAIN STUDIONET EXECUTION (V2 CONTRACT PAIR)');
   console.log('======================================================');
   console.log(`Studionet RPC:           ${NETWORK.rpcUrl}`);
   console.log(`Cover Contract:          ${DEPLOYMENTS.cover.address}`);
   console.log(`CoverGuard Contract:     ${DEPLOYMENTS.coverGuard.address}`);
 
-  const { creatorKey, buyerKey } = getOrGenerateKeys();
+  let { creatorKey, buyerKey } = getOrGenerateKeys();
   const creatorAccount = createAccount(creatorKey);
-  const buyerAccount = createAccount(buyerKey);
+  let buyerAccount = createAccount(buyerKey);
 
   console.log(`Creator Address:         ${creatorAccount.address}`);
-  console.log(`Buyer Address:           ${buyerAccount.address}`);
+  console.log(`Buyer Address (Initial): ${buyerAccount.address}`);
 
   const clientCreator = getClientForAccount(creatorAccount);
-  const clientBuyer = getClientForAccount(buyerAccount);
 
   const pinnedSha = '92c69bc636517656b9e7ee031a503adfb2d26bb4';
   const rawBase = `https://raw.githubusercontent.com/hypercybers99/cover-fixtures/${pinnedSha}/`;
@@ -143,24 +134,28 @@ async function main() {
   console.log(`\nInitial Creator Balance: ${creatorBalStart} CR`);
   if (creatorBalStart < 400) {
     console.log('Claiming demo credits for Creator...');
-    const claimCreatorRes = await claimDemoCredits(clientCreator);
+    const claimCreatorRes = await retry(() => claimDemoCredits(clientCreator), 'Creator claim credits');
     console.log(`Creator claim tx: ${claimCreatorRes.txHash}`);
   }
 
   // ---------------------------------------------------------------------------
   // STEP 1: Claim credits (Buyer wallet)
+  // Ensure a clean virgin buyer account for claim verification
   // ---------------------------------------------------------------------------
   console.log('\n--- STEP 1: Claim credits (Buyer) ---');
-  const balBeforeBuyer1 = parseInt(await getBalanceOf(buyerAccount.address), 10);
+  let balBeforeBuyer1 = parseInt(await getBalanceOf(buyerAccount.address), 10);
+  if (balBeforeBuyer1 > 0) {
+    console.log(`Existing buyer balance is ${balBeforeBuyer1} CR (already claimed). Generating fresh buyer key...`);
+    buyerKey = generatePrivateKey();
+    buyerAccount = createAccount(buyerKey);
+    balBeforeBuyer1 = parseInt(await getBalanceOf(buyerAccount.address), 10);
+  }
+  console.log(`Buyer Address:        ${buyerAccount.address}`);
   console.log(`Buyer balance before: ${balBeforeBuyer1} CR`);
 
-  let step1Receipt = null;
-  if (balBeforeBuyer1 < 500) {
-    step1Receipt = await claimDemoCredits(clientBuyer);
-  } else {
-    console.log('Buyer already holds demo credits, claiming additional for fresh receipt verification...');
-    step1Receipt = await claimDemoCredits(clientBuyer);
-  }
+  const clientBuyer = getClientForAccount(buyerAccount);
+
+  const step1Receipt = await retry(() => claimDemoCredits(clientBuyer), 'Buyer claim credits');
   const balAfterBuyer1 = parseInt(await getBalanceOf(buyerAccount.address), 10);
   console.log(`Buyer balance after:  ${balAfterBuyer1} CR (delta: +${balAfterBuyer1 - balBeforeBuyer1} CR)`);
 
@@ -182,31 +177,26 @@ async function main() {
   recordStep('step1_claim_credits', step1Data);
 
   // ---------------------------------------------------------------------------
-  // STEP 2: Create product (Creator wallet)
+  // STEP 2: Create product (Creator wallet) - starts at operational s0Url
   // ---------------------------------------------------------------------------
   console.log('\n--- STEP 2: Create product (Creator) ---');
   const productName = 'App E2E Cloud Cover';
-  const ruleText = 'major outage lasting at least 60 minutes';
   const minFull = 60;
   const minHalf = 30;
   const premiumBps = 1000; // 10.00%
 
-  const step2Receipt = await createProduct(
-    clientCreator,
-    productName,
-    s0Url,
-    ruleText,
-    minFull,
-    minHalf,
-    premiumBps
+  const step2Receipt = await retry(
+    () => createProduct(clientCreator, productName, s0Url, minFull, minHalf, premiumBps),
+    'Create product'
   );
 
+  const extractedProductId = extractProductIdFromReceipt(step2Receipt.receipt);
   const statsAfterCreate = await getStats();
-  const createdProductId = String(parseInt(statsAfterCreate.next_product, 10) - 1);
-  console.log(`Product created with ID: ${createdProductId}`);
+  const createdProductId = extractedProductId || String(parseInt(statsAfterCreate.next_product, 10) - 1);
+  console.log(`Product created with ID: ${createdProductId} (receipt return value: ${extractedProductId})`);
 
   const productSnapshot = await getProduct(createdProductId);
-  console.log(`Product record readback:`, productSnapshot?.name, productSnapshot?.terms_hash);
+  console.log(`Product record readback: name="${productSnapshot?.name}", terms_hash="${productSnapshot?.terms_hash}"`);
 
   const step2Data = {
     step: '2_create_product',
@@ -219,20 +209,24 @@ async function main() {
     classification: step2Receipt.check.classification,
     elapsed_seconds: step2Receipt.elapsedSeconds,
     product_id: createdProductId,
+    extracted_product_id: extractedProductId,
     product: productSnapshot,
   };
   fs.writeFileSync(path.join(e2eDir, 'step2_create_product.json'), JSON.stringify(step2Data, null, 2));
   recordStep('step2_create_product', step2Data);
 
   // ---------------------------------------------------------------------------
-  // STEP 3: Fund product pool
+  // STEP 3: Fund product pool (Using extracted product ID)
   // ---------------------------------------------------------------------------
   console.log('\n--- STEP 3: Fund product pool (Creator) ---');
   const fundAmount = 300;
   const creatorBalBeforeFund = parseInt(await getBalanceOf(creatorAccount.address), 10);
   const healthBeforeFund = await getPoolHealth(createdProductId);
 
-  const step3Receipt = await fundProduct(clientCreator, createdProductId, fundAmount);
+  const step3Receipt = await retry(
+    () => fundProduct(clientCreator, createdProductId, fundAmount),
+    'Fund product'
+  );
 
   const creatorBalAfterFund = parseInt(await getBalanceOf(creatorAccount.address), 10);
   const healthAfterFund = await getPoolHealth(createdProductId);
@@ -279,22 +273,28 @@ async function main() {
   recordStep('step4_quote_premium', step4Data);
 
   // ---------------------------------------------------------------------------
-  // STEP 5: Buy cover (Policy 1)
+  // STEP 5: Buy cover (Policy 1) - Pins purchase-time terms and s0Url
   // ---------------------------------------------------------------------------
   console.log('\n--- STEP 5: Buy cover (Buyer) ---');
   const buyerBalBeforeBuy1 = parseInt(await getBalanceOf(buyerAccount.address), 10);
   const poolHealthBeforeBuy1 = await getPoolHealth(createdProductId);
 
-  const step5Receipt = await buyPolicy(clientBuyer, createdProductId, coverageP1);
+  const step5Receipt = await retry(
+    () => buyPolicy(clientBuyer, createdProductId, coverageP1),
+    'Buy policy 1'
+  );
 
   const buyerBalAfterBuy1 = parseInt(await getBalanceOf(buyerAccount.address), 10);
+  const extractedPolicyId1 = extractProductIdFromReceipt(step5Receipt.receipt);
   const statsAfterBuy1 = await getStats();
-  const policyId1 = String(parseInt(statsAfterBuy1.next_policy, 10) - 1);
+  const policyId1 = extractedPolicyId1 || String(parseInt(statsAfterBuy1.next_policy, 10) - 1);
   const policy1Snapshot = await getPolicy(policyId1);
   const poolHealthAfterBuy1 = await getPoolHealth(createdProductId);
 
   const premiumCharged = buyerBalBeforeBuy1 - buyerBalAfterBuy1;
   console.log(`Policy 1 ID: ${policyId1}, status: ${policy1Snapshot?.status}`);
+  console.log(`Pinned evidence_url: ${policy1Snapshot?.evidence_url}`);
+  console.log(`Pinned terms_hash:   ${policy1Snapshot?.terms_hash}`);
   console.log(`Premium charged: ${premiumCharged} CR (quoted: ${quotedPremium} CR, match: ${premiumCharged === quotedPremium})`);
 
   const step5Data = {
@@ -322,13 +322,20 @@ async function main() {
   recordStep('step5_buy_cover', step5Data);
 
   // ---------------------------------------------------------------------------
-  // STEP 6: Settle (Real fixture: status-s1-outage-75.md -> PAY_100)
+  // STEP 6a: Update source to s1Url (Demonstrates purchase-time binding)
   // ---------------------------------------------------------------------------
-  console.log('\n--- STEP 6: Settle (Updating source to s1 outage & settling) ---');
-  // First update product source to s1 (outage 75 min)
+  console.log('\n--- STEP 6a: Update product source to s1 ---');
   console.log(`Updating product ${createdProductId} source to ${s1Url}...`);
-  const updateSourceReceipt = await updateSource(clientCreator, createdProductId, s1Url);
+  const updateSourceReceipt = await retry(
+    () => updateSource(clientCreator, createdProductId, s1Url),
+    'Update source to s1'
+  );
   console.log(`Source updated: tx ${updateSourceReceipt.txHash}`);
+
+  const productAfterUpdate = await getProduct(createdProductId);
+  const policy1AfterUpdate = await getPolicy(policyId1);
+  console.log(`Product current URL: ${productAfterUpdate?.url}`);
+  console.log(`Policy 1 pinned URL: ${policy1AfterUpdate?.evidence_url} (remains s0Url)`);
 
   const updateSourceData = {
     step: '6a_update_source',
@@ -342,43 +349,26 @@ async function main() {
     leader_result: updateSourceReceipt.receipt?.consensus_data?.leader_receipt?.[0]?.execution_result,
     classification: updateSourceReceipt.check.classification,
     elapsed_seconds: updateSourceReceipt.elapsedSeconds,
+    product_snapshot: productAfterUpdate,
+    policy_pinned_url: policy1AfterUpdate?.evidence_url,
+    binding_intact: policy1AfterUpdate?.evidence_url === s0Url,
   };
   fs.writeFileSync(path.join(e2eDir, 'step6_update_source.json'), JSON.stringify(updateSourceData, null, 2));
   recordStep('step6a_update_source', updateSourceData);
 
+  // ---------------------------------------------------------------------------
+  // STEP 6b: Settle Policy 1 against pinned source
+  // ---------------------------------------------------------------------------
+  console.log('\n--- STEP 6b: Settle Policy 1 against pinned source ---');
   const buyerBalBeforeSettle = parseInt(await getBalanceOf(buyerAccount.address), 10);
   const poolHealthBeforeSettle = await getPoolHealth(createdProductId);
 
-  let settleAttempt = 1;
-  let step6Receipt = null;
-  let settleSuccess = false;
-
-  while (!settleSuccess && settleAttempt <= 3) {
-    console.log(`Submitting settle for policy ${policyId1} (attempt ${settleAttempt})...`);
-    step6Receipt = await settlePolicy(clientBuyer, policyId1);
-    const classification = step6Receipt.check.classification;
-    console.log(`Attempt ${settleAttempt} result: ${classification} (${step6Receipt.receipt?.status_name})`);
-
-    const attemptFilename = `step6_settle_attempt${settleAttempt}.json`;
-    const attemptData = {
-      attempt: settleAttempt,
-      tx_hash: step6Receipt.txHash,
-      status_name: step6Receipt.receipt?.status_name,
-      result_name: step6Receipt.receipt?.result_name,
-      leader_result: step6Receipt.receipt?.consensus_data?.leader_receipt?.[0]?.execution_result,
-      classification: step6Receipt.check.classification,
-      elapsed_seconds: step6Receipt.elapsedSeconds,
-    };
-    fs.writeFileSync(path.join(e2eDir, attemptFilename), JSON.stringify(attemptData, null, 2));
-
-    if (classification === 'SUCCESS') {
-      settleSuccess = true;
-    } else {
-      console.warn(`Attempt ${settleAttempt} did not reach SUCCESS consensus. Waiting before retry...`);
-      settleAttempt++;
-      await new Promise((r) => setTimeout(r, 6000));
-    }
-  }
+  console.log(`Submitting settle for policy ${policyId1}...`);
+  const step6Receipt = await retry(
+    () => settlePolicy(clientBuyer, policyId1),
+    'Settle policy 1'
+  );
+  console.log(`Settle tx: ${step6Receipt.txHash}, status: ${step6Receipt.receipt?.status_name}`);
 
   const buyerBalAfterSettle = parseInt(await getBalanceOf(buyerAccount.address), 10);
   const poolHealthAfterSettle = await getPoolHealth(createdProductId);
@@ -395,10 +385,11 @@ async function main() {
 
   const step6Data = {
     step: '6_settle_policy',
-    fixture_url: s1Url,
-    expected_outcome: 'PAY_100',
+    pinned_fixture_url: policy1AfterSettle?.evidence_url,
+    product_current_url: productAfterUpdate?.url,
+    expected_outcome: 'NO_PAY',
     actual_outcome: settlementRecord?.outcome,
-    match: settlementRecord?.outcome === 'PAY_100',
+    match: settlementRecord?.outcome === 'NO_PAY',
     caller: buyerAccount.address,
     function: 'settle',
     tx_hash: step6Receipt.txHash,
@@ -407,7 +398,6 @@ async function main() {
     leader_result: step6Receipt.receipt?.consensus_data?.leader_receipt?.[0]?.execution_result,
     classification: step6Receipt.check.classification,
     elapsed_seconds: step6Receipt.elapsedSeconds,
-    attempts: settleAttempt,
     buyer_balance_before: buyerBalBeforeSettle,
     buyer_balance_after: buyerBalAfterSettle,
     payout_received: payoutReceived,
@@ -420,28 +410,63 @@ async function main() {
   recordStep('step6_settle_policy', step6Data);
 
   // ---------------------------------------------------------------------------
-  // STEP 7: Buy second policy, cancel it, record real refund from snapshots
+  // STEP 7: Restore source to s0, Buy policy 2 & Cancel (Refund & reserve check)
   // ---------------------------------------------------------------------------
   console.log('\n--- STEP 7: Buy policy 2 & Cancel (Refund check) ---');
-  // First restore source to s0 so buy doesn't fail buy gate
-  console.log(`Restoring product source to s0 for second purchase...`);
-  await updateSource(clientCreator, createdProductId, s0Url);
+  console.log(`Restoring product source to s0 so buy passes inception check...`);
+  const restoreReceipt = await retry(() => updateSource(clientCreator, createdProductId, s0Url), 'Restore source to s0');
+  const restoreData = {
+    step: '7_restore_source',
+    caller: creatorAccount.address,
+    function: 'update_source',
+    product_id: createdProductId,
+    new_url: s0Url,
+    tx_hash: restoreReceipt.txHash,
+    status_name: restoreReceipt.receipt?.status_name,
+    result_name: restoreReceipt.receipt?.result_name,
+    leader_result: restoreReceipt.receipt?.consensus_data?.leader_receipt?.[0]?.execution_result,
+    classification: restoreReceipt.check.classification,
+    elapsed_seconds: restoreReceipt.elapsedSeconds,
+  };
+  fs.writeFileSync(path.join(e2eDir, 'step7_restore_source.json'), JSON.stringify(restoreData, null, 2));
 
   const coverageP2 = 50;
   console.log(`Buying policy 2 (coverage ${coverageP2} CR)...`);
-  const step7BuyReceipt = await buyPolicy(clientBuyer, createdProductId, coverageP2);
+  const step7BuyReceipt = await retry(
+    () => buyPolicy(clientBuyer, createdProductId, coverageP2),
+    'Buy policy 2'
+  );
 
+  const extractedPolicyId2 = extractProductIdFromReceipt(step7BuyReceipt.receipt);
   const statsAfterBuy2 = await getStats();
-  const policyId2 = String(parseInt(statsAfterBuy2.next_policy, 10) - 1);
+  const policyId2 = extractedPolicyId2 || String(parseInt(statsAfterBuy2.next_policy, 10) - 1);
   const policy2ActiveSnapshot = await getPolicy(policyId2);
-  console.log(`Policy 2 ID: ${policyId2}, status: ${policy2ActiveSnapshot?.status}`);
+  console.log(`Policy 2 ID: ${policyId2}, status: ${policy2ActiveSnapshot?.status}, pinned URL: ${policy2ActiveSnapshot?.evidence_url}`);
+
+  const step7BuyData = {
+    step: '7a_buy_second',
+    caller: buyerAccount.address,
+    function: 'buy',
+    tx_hash: step7BuyReceipt.txHash,
+    status_name: step7BuyReceipt.receipt?.status_name,
+    result_name: step7BuyReceipt.receipt?.result_name,
+    leader_result: step7BuyReceipt.receipt?.consensus_data?.leader_receipt?.[0]?.execution_result,
+    classification: step7BuyReceipt.check.classification,
+    elapsed_seconds: step7BuyReceipt.elapsedSeconds,
+    policy_id: policyId2,
+    policy_snapshot: policy2ActiveSnapshot,
+  };
+  fs.writeFileSync(path.join(e2eDir, 'step7_buy_second.json'), JSON.stringify(step7BuyData, null, 2));
 
   // Cancel policy 2
   const buyerBalBeforeCancel = parseInt(await getBalanceOf(buyerAccount.address), 10);
   const poolHealthBeforeCancel = await getPoolHealth(createdProductId);
 
   console.log(`Submitting cancel for policy ${policyId2}...`);
-  const step7CancelReceipt = await cancelPolicy(clientBuyer, policyId2);
+  const step7CancelReceipt = await retry(
+    () => cancelPolicy(clientBuyer, policyId2),
+    'Cancel policy 2'
+  );
 
   const buyerBalAfterCancel = parseInt(await getBalanceOf(buyerAccount.address), 10);
   const poolHealthAfterCancel = await getPoolHealth(createdProductId);
@@ -454,7 +479,7 @@ async function main() {
 
   console.log(`Policy 2 status after cancel: ${policy2CancelledSnapshot?.status}`);
   console.log(`Refund recorded: ${refundRecorded} CR (contract design: non-refundable premium)`);
-  console.log(`Pool reserved released: ${reservedReleased} CR`);
+  console.log(`Pool reserved released: ${reservedReleased} CR (expected: ${coverageP2} CR)`);
 
   const step7Data = {
     step: '7_cancel_policy',
@@ -480,7 +505,7 @@ async function main() {
   recordStep('step7_cancel_policy', step7Data);
 
   // ---------------------------------------------------------------------------
-  // STEP 8: Withdraw unreserved
+  // STEP 8: Withdraw unreserved pool capital
   // ---------------------------------------------------------------------------
   console.log('\n--- STEP 8: Withdraw unreserved (Creator) ---');
   const withdrawAmount = 50;
@@ -488,7 +513,10 @@ async function main() {
   const poolHealthBeforeWithdraw = await getPoolHealth(createdProductId);
 
   console.log(`Withdrawing ${withdrawAmount} CR unreserved from pool ${createdProductId}...`);
-  const step8Receipt = await withdrawUnreserved(clientCreator, createdProductId, withdrawAmount);
+  const step8Receipt = await retry(
+    () => withdrawUnreserved(clientCreator, createdProductId, withdrawAmount),
+    'Withdraw unreserved'
+  );
 
   const creatorBalAfterWithdraw = parseInt(await getBalanceOf(creatorAccount.address), 10);
   const poolHealthAfterWithdraw = await getPoolHealth(createdProductId);
@@ -518,10 +546,10 @@ async function main() {
   recordStep('step8_withdraw_unreserved', step8Data);
 
   // ---------------------------------------------------------------------------
-  // STEP 9: CoverGuard (is_covered, is_covered_for, attest, attestations)
+  // STEP 9: CoverGuard (5-arg is_covered_for, is_covered, attest, attestations)
   // ---------------------------------------------------------------------------
   console.log('\n--- STEP 9: CoverGuard Integration ---');
-  // 1. Check is_covered on settled policy 1 (PAID)
+  // 1. Check is_covered on settled policy 1
   const isCoveredP1 = await isCovered(buyerAccount.address, policyId1);
   console.log(`CoverGuard is_covered(Policy 1): covered=${isCoveredP1.covered}, reason=${isCoveredP1.reason}`);
 
@@ -531,17 +559,35 @@ async function main() {
 
   // 3. Buy policy 3 (active policy) for CoverGuard attestation
   console.log(`Buying policy 3 (coverage 50 CR) to attest active coverage...`);
-  const step9BuyReceipt = await buyPolicy(clientBuyer, createdProductId, 50);
+  const step9BuyReceipt = await retry(
+    () => buyPolicy(clientBuyer, createdProductId, 50),
+    'Buy policy 3'
+  );
+  const step9BuyData = {
+    step: '9a_buy_third',
+    caller: buyerAccount.address,
+    function: 'buy',
+    tx_hash: step9BuyReceipt.txHash,
+    status_name: step9BuyReceipt.receipt?.status_name,
+    result_name: step9BuyReceipt.receipt?.result_name,
+    leader_result: step9BuyReceipt.receipt?.consensus_data?.leader_receipt?.[0]?.execution_result,
+    classification: step9BuyReceipt.check.classification,
+    elapsed_seconds: step9BuyReceipt.elapsedSeconds,
+  };
+  fs.writeFileSync(path.join(e2eDir, 'step9_buy_third.json'), JSON.stringify(step9BuyData, null, 2));
+
+  const extractedPolicyId3 = extractProductIdFromReceipt(step9BuyReceipt.receipt);
   const statsAfterBuy3 = await getStats();
-  const policyId3 = String(parseInt(statsAfterBuy3.next_policy, 10) - 1);
-  console.log(`Policy 3 ID: ${policyId3}`);
+  const policyId3 = extractedPolicyId3 || String(parseInt(statsAfterBuy3.next_policy, 10) - 1);
+  const policy3Snapshot = await getPolicy(policyId3);
+  console.log(`Policy 3 ID: ${policyId3}, terms_hash: ${policy3Snapshot?.terms_hash}`);
 
   // 4. Check is_covered on policy 3 (ACTIVE)
   const isCoveredP3 = await isCovered(buyerAccount.address, policyId3);
   console.log(`CoverGuard is_covered(Policy 3): covered=${isCoveredP3.covered}, reason=${isCoveredP3.reason}`);
 
-  // 5. Check is_covered_for
-  const termsHash = productSnapshot?.terms_hash || '';
+  // 5. Check 5-arg is_covered_for: (holder, policy_id, product_id, terms_hash, min_coverage)
+  const termsHash = policy3Snapshot?.terms_hash || '';
   const isCoveredForExact = await isCoveredFor(
     buyerAccount.address,
     policyId3,
@@ -556,12 +602,23 @@ async function main() {
     termsHash,
     100
   );
-  console.log(`CoverGuard is_covered_for(50 CR): ${isCoveredForExact} (expected true)`);
-  console.log(`CoverGuard is_covered_for(100 CR): ${isCoveredForExceed} (expected false)`);
+  const isCoveredForWrongHash = await isCoveredFor(
+    buyerAccount.address,
+    policyId3,
+    createdProductId,
+    '0x0000000000000000000000000000000000000000000000000000000000000000',
+    50
+  );
+  console.log(`CoverGuard is_covered_for(50 CR, valid terms): ${isCoveredForExact} (expected true)`);
+  console.log(`CoverGuard is_covered_for(100 CR, exceed):     ${isCoveredForExceed} (expected false)`);
+  console.log(`CoverGuard is_covered_for(wrong terms_hash):   ${isCoveredForWrongHash} (expected false)`);
 
   // 6. Attest coverage
   console.log(`Attesting coverage for policy ${policyId3}...`);
-  const step9AttestReceipt = await attestCoverage(clientBuyer, policyId3);
+  const step9AttestReceipt = await retry(
+    () => attestCoverage(clientBuyer, policyId3),
+    'Attest coverage'
+  );
   console.log(`Attestation tx: ${step9AttestReceipt.txHash}`);
 
   // 7. Query attestations
@@ -576,8 +633,9 @@ async function main() {
     policy_2_check: isCoveredP2,
     policy_3_id: policyId3,
     policy_3_check: isCoveredP3,
-    is_covered_for_50: isCoveredForExact,
-    is_covered_for_100: isCoveredForExceed,
+    is_covered_for_50_exact: isCoveredForExact,
+    is_covered_for_100_exceed: isCoveredForExceed,
+    is_covered_for_wrong_terms: isCoveredForWrongHash,
     attest_tx_hash: step9AttestReceipt.txHash,
     status_name: step9AttestReceipt.receipt?.status_name,
     result_name: step9AttestReceipt.receipt?.result_name,
@@ -643,6 +701,10 @@ async function main() {
   }
 
   const summary = {
+    contracts: {
+      cover: DEPLOYMENTS.cover.address,
+      coverGuard: DEPLOYMENTS.coverGuard.address,
+    },
     write_attempts: writeAttempts,
     write_successes: writeSuccesses,
     write_failures: writeFailures,
@@ -651,17 +713,17 @@ async function main() {
       {
         step: '4_quote_premium',
         function: 'quote_premium',
-        result: 'Quoted 10 CR, formula ceiling 10 CR, charged 10 CR (exact match)',
+        result: `Quoted ${quotedPremium} CR, formula ceiling ${expectedCeil} CR, charged ${premiumCharged} CR (exact match)`,
       },
       {
         step: '9_coverguard_views',
         function: 'is_covered & is_covered_for',
-        result: 'Policy 5 (PAID): false (PAID); Policy 6 (CANCELLED): false (CANCELLED); Policy 7 (ACTIVE): true (OK); is_covered_for(50)=true; is_covered_for(100)=false',
+        result: `Policy ${policyId1}: covered=${isCoveredP1.covered} (${isCoveredP1.reason}); Policy ${policyId2}: covered=${isCoveredP2.covered} (${isCoveredP2.reason}); Policy ${policyId3}: covered=${isCoveredP3.covered} (${isCoveredP3.reason}); is_covered_for(50)=${isCoveredForExact}; is_covered_for(100)=${isCoveredForExceed}; is_covered_for(wrong_terms)=${isCoveredForWrongHash}`,
       },
       {
         step: '9_list_attestations',
         function: 'list_attestations',
-        result: 'Retrieved on-chain attestation record for Policy 7',
+        result: `Retrieved ${buyerAttestations.length} on-chain attestation record(s) for Policy ${policyId3}`,
       },
     ],
   };

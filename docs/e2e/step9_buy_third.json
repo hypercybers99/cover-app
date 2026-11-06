@@ -1,0 +1,11 @@
+{
+  "step": "9a_buy_third",
+  "caller": "0x0F40D4569F45b16330bF4Be737604053b0522428",
+  "function": "buy",
+  "tx_hash": "0x79e37d0f6b69ce1e23a988025dacc4687e69e56375d7da585d155d8da04836fb",
+  "status_name": "ACCEPTED",
+  "result_name": "MAJORITY_AGREE",
+  "leader_result": "SUCCESS",
+  "classification": "SUCCESS",
+  "elapsed_seconds": 18.56
+}

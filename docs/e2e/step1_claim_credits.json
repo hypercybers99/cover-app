@@ -1,13 +1,13 @@
 {
   "step": "1_claim_credits",
-  "caller": "0x18A35BaD91ca4D30D10D25E01026f6b2c202457A",
+  "caller": "0x0F40D4569F45b16330bF4Be737604053b0522428",
   "function": "claim_demo_credits",
-  "tx_hash": "0xdc02877b869e3f9fd5384205c30a933bb0a3d1504ab421ad8e1e3cd2574966e8",
+  "tx_hash": "0xee0de579ee5dcbd801b911b573f8b8bb8901b1361c18a21725390edd122c946c",
   "status_name": "ACCEPTED",
   "result_name": "MAJORITY_AGREE",
   "leader_result": "SUCCESS",
   "classification": "SUCCESS",
-  "elapsed_seconds": 8.69,
+  "elapsed_seconds": 9.17,
   "balance_before": 0,
   "balance_after": 1000,
   "delta": 1000
