@@ -3,8 +3,8 @@
     "cover": "0x3d2698cED9292689f68b401e888fbA1d18CBfdE3",
     "coverGuard": "0xfEebb7147Dd65b5EbEa7C6634ed4549B45993A1A"
   },
-  "write_attempts": 12,
-  "write_successes": 12,
+  "write_attempts": 16,
+  "write_successes": 16,
   "write_failures": 0,
   "writes": [
     {
@@ -138,6 +138,50 @@
       "leader_result": "SUCCESS",
       "classification": "SUCCESS",
       "elapsed_seconds": 8.58
+    },
+    {
+      "file": "step10_mutable_payout.json",
+      "step": "10_create_mutable_product",
+      "function": "create_product",
+      "tx_hash": "0xc9c99ad2fe8ed2e3242f8405cf9f1f2a6bc34da78bd1fdb462516bcf8307ee21",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 5.3
+    },
+    {
+      "file": "step10_mutable_payout.json",
+      "step": "10_fund_mutable_product",
+      "function": "fund_product",
+      "tx_hash": "0xdf74173cf31387f2b8e8f6ce17073e470fe01ed9a584ae92ffe374124ddea4a5",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 5.34
+    },
+    {
+      "file": "step10_mutable_payout.json",
+      "step": "10_buy_mutable_policy",
+      "function": "buy",
+      "tx_hash": "0x9a20dc7e2f62ad82fb1cc334523504388f5850a3e90aa8ee2c2c8494b8c78730",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 24.58
+    },
+    {
+      "file": "step10_mutable_payout.json",
+      "step": "10_settle_mutable_payout",
+      "function": "settle",
+      "tx_hash": "0xa8affe068d8372ae65e569cb37dd38399bbc3157356617e70dd026c8145b5d58",
+      "status_name": "ACCEPTED",
+      "result_name": "MAJORITY_AGREE",
+      "leader_result": "SUCCESS",
+      "classification": "SUCCESS",
+      "elapsed_seconds": 16.31
     }
   ],
   "reads_no_tx": [
