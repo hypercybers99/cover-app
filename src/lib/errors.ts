@@ -58,11 +58,6 @@ export const ERROR_MAPPINGS: Record<string, ErrorExplanation> = {
     nextStep: "Enter a descriptive ASCII product name between 3 and 60 characters.",
     contract: "Cover",
   },
-  "bad rule text": {
-    plainMessage: "The rule description text must be pure ASCII between 10 and 200 characters.",
-    nextStep: "Provide clear ASCII rule text between 10 and 200 characters.",
-    contract: "Cover",
-  },
   "bad thresholds": {
     plainMessage: "Outage thresholds are invalid: min_full must be 2-10080 min, and min_half must be 1 to (min_full - 1).",
     nextStep: "Adjust thresholds so min_half is strictly less than min_full.",
@@ -172,33 +167,8 @@ export const ERROR_MAPPINGS: Record<string, ErrorExplanation> = {
     contract: "CoverGuard",
   },
   "not covered:": {
-    plainMessage: "CoverGuard verification failed: the policy does not provide valid active coverage.",
+    plainMessage: "CoverGuard verification failed: the policy does not provide valid active coverage (e.g. PAID, NOT_HOLDER, CANCELLED, POOL_SHORT, or NO_POLICY).",
     nextStep: "Check policy status, holder address, and product pool balance.",
-    contract: "CoverGuard",
-  },
-  "not covered: NO_POLICY": {
-    plainMessage: "CoverGuard verification failed: policy ID was not found.",
-    nextStep: "Provide a valid existing policy ID.",
-    contract: "CoverGuard",
-  },
-  "not covered: NOT_HOLDER": {
-    plainMessage: "CoverGuard verification failed: connected wallet is not the policy holder.",
-    nextStep: "Switch wallet to the holder address.",
-    contract: "CoverGuard",
-  },
-  "not covered: PAID": {
-    plainMessage: "CoverGuard verification failed: policy has already settled and paid out.",
-    nextStep: "Purchase a fresh active policy for new coverage.",
-    contract: "CoverGuard",
-  },
-  "not covered: CANCELLED": {
-    plainMessage: "CoverGuard verification failed: policy was cancelled by holder.",
-    nextStep: "Purchase a fresh active policy.",
-    contract: "CoverGuard",
-  },
-  "not covered: POOL_SHORT": {
-    plainMessage: "CoverGuard verification failed: product pool balance is less than policy coverage.",
-    nextStep: "Underwriter must fund the pool before attestation can succeed.",
     contract: "CoverGuard",
   },
 };

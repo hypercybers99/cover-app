@@ -90,4 +90,46 @@ describe('Error Mapping Completeness', () => {
 
     console.log(`  Completeness verified: 100% of UserError instances map to structured explanations.`);
   });
+
+  it('extracts unique error strings from contracts and asserts exact equality with ERROR_MAPPINGS keys', () => {
+    const coverPath = path.resolve(__dirname, '../contracts/Cover.py');
+    const guardPath = path.resolve(__dirname, '../contracts/CoverGuard.py');
+
+    const coverErrors = extractUserErrors(coverPath);
+    const guardErrors = extractUserErrors(guardPath);
+
+    const contractTemplates = new Set<string>();
+    for (const err of coverErrors) {
+      if (err.includes('{status_code}')) {
+        contractTemplates.add('HTTP status not 200:');
+      } else if (err.includes('{existing_sid}')) {
+        contractTemplates.add('duplicate observation:');
+      } else {
+        contractTemplates.add(err);
+      }
+    }
+    for (const err of guardErrors) {
+      if (err.includes('not covered:')) {
+        contractTemplates.add('not covered:');
+      } else {
+        contractTemplates.add(err);
+      }
+    }
+
+    const contractList = Array.from(contractTemplates).sort();
+    const errorKeys = Object.keys(ERROR_MAPPINGS).sort();
+
+    const diffExtraInApp = errorKeys.filter(k => !contractTemplates.has(k));
+    const diffMissingInApp = contractList.filter(k => !(k in ERROR_MAPPINGS));
+    const fullDiff = [...diffExtraInApp.map(k => `+ ${k}`), ...diffMissingInApp.map(k => `- ${k}`)];
+
+    console.log(`\n[Contract vs ERROR_MAPPINGS Exact Key Equality]`);
+    console.log(`  Contract unique templates count: ${contractList.length}`);
+    console.log(`  ERROR_MAPPINGS keys count:       ${errorKeys.length}`);
+    console.log(`  Diff:                            ${JSON.stringify(fullDiff)}`);
+
+    expect(contractList.length).toBe(errorKeys.length);
+    expect(fullDiff).toEqual([]);
+    expect(errorKeys).toEqual(contractList);
+  });
 });
