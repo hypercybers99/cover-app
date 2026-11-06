@@ -2,9 +2,9 @@
 
 - Repository: https://github.com/hypercybers99/cover-app
 - Head Commit: 53c3d5ea9a3eebf7805ef8883d8a61ef30439afe
-- Release Tag: cover-app-v2
+- Release Tag: cover-app-v2b
 - Deployed Application URL: https://hypercybers99.github.io/cover-app/
-- Contract Source Repo: https://github.com/hypercybers99/cover-genlayer/tree/cover-v2 (tag cover-v2, commit f641d80)
+- Contract Source Repo: https://github.com/hypercybers99/cover-genlayer/tree/cover-v2 (tag cover-v2b, commit fae4ecc)
 - Network: GenLayer Studionet (Chain ID 61999, RPC https://studio.genlayer.com/api)
 - Total Commits: 34
 - Status: Preview
@@ -221,8 +221,8 @@ PASS: All browser checks clean!
 Executed via `scripts/e2e_full_chain.mjs` against deployed Cover V2 (`0x3d2698cED9292689f68b401e888fbA1d18CBfdE3`) and CoverGuard V2 (`0xfEebb7147Dd65b5EbEa7C6634ed4549B45993A1A`).
 
 ### Summary
-- Total On-Chain Write Attempts: 12
-- Successful Writes: 12
+- Total On-Chain Write Attempts: 16
+- Successful Writes: 16
 - Failed Writes: 0
 
 ### Transaction Execution Matrix
@@ -283,3 +283,34 @@ Outputs Saved To:        docs/deployed_audit/
 1. `https://hypercybers99.github.io/cover-app/products/1` -> Rendered page: `true`, Expected text `Product #1`: `true`, Screenshot: `docs/deployed_audit/deeplink_products_1.png`
 2. `https://hypercybers99.github.io/cover-app/policies/1` -> Rendered page: `true`, Expected text `Policy #1`: `true`, Screenshot: `docs/deployed_audit/deeplink_policies_1.png`
 3. `https://hypercybers99.github.io/cover-app/guard` -> Rendered page: `true`, Expected text `CoverGuard`: `true`, Screenshot: `docs/deployed_audit/deeplink_guard.png`
+
+---
+
+## 10. Real Payout Path E2E Execution (Mutable Fixture & CoverGuard Gate Checks)
+
+Executed as Step 10 of `scripts/e2e_full_chain.mjs` against deployed Cover V2 (`0x3d2698cED9292689f68b401e888fbA1d18CBfdE3`) and CoverGuard V2 (`0xfEebb7147Dd65b5EbEa7C6634ed4549B45993A1A`) with evidence saved to `docs/e2e/step10_mutable_payout.json`.
+
+### A. Mutable Lifecycle Transactions
+
+| Action | Function | ID | Tx Hash | Latency | Status Name | Leader Result |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Create Product** | `create_product` | `12` | `0xc9c99ad2fe8ed2e3242f8405cf9f1f2a6bc34da78bd1fdb462516bcf8307ee21` | 5.30 s | `ACCEPTED` | `SUCCESS` |
+| **Fund Product** | `fund_product` | `12` | `0xdf74173cf31387f2b8e8f6ce17073e470fe01ed9a584ae92ffe374124ddea4a5` | 5.34 s | `ACCEPTED` | `SUCCESS` |
+| **Buy Policy** | `buy` | `16` | `0x9a20dc7e2f62ad82fb1cc334523504388f5850a3e90aa8ee2c2c8494b8c78730` | 24.58 s | `ACCEPTED` | `SUCCESS` |
+| **Settle Policy** | `settle` | `16` | `0xa8affe068d8372ae65e569cb37dd38399bbc3157356617e70dd026c8145b5d58` | 16.31 s | `ACCEPTED` | `SUCCESS` |
+
+### B. Fixture Mutation & Invalidation
+- **Fixture Commit**: `e4cf48528b087138a118cacb0db4e142cf402afe` (Outage 75 min injected into `status-mutable-app.md`)
+- **Pushed At**: `2026-11-06T13:26:37.493Z`
+- **CDN Cache-Free Verified**: `2026-11-06T13:32:46.012Z` (368 s cooling)
+
+### C. Settlement Outcome & Payout Validation
+- **Settlement ID**: `10`
+- **Settlement Outcome**: `PAY_100` (Incident duration: 75 minutes, threshold: 60 minutes)
+- **Settlement Payout**: 100 demo credits
+- **Policy Record**: Status transitioned from `ACTIVE` to `PAID`, `paid_amount` updated to 100 demo credits.
+- **Buyer Balance**: Increased from 998 to 1,098 demo credits (+100 demo credits payout).
+
+### D. CoverGuard Post-PAID Gate Checks
+- `is_covered(0x2568e92ffba4f809a63348f63a5465f2151fc483, "16")`: returned `covered="false"`, `reason="PAID"`, `policy_status="PAID"`.
+- `is_covered_for(0x2568e92ffba4f809a63348f63a5465f2151fc483, "16", "12", "7edc573ddc5ed64b4574a61ec963e0639422e92273098e2d1d415586d372e95f", 100)`: returned `false`.
