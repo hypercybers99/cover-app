@@ -44,7 +44,7 @@ test.describe('Cover Application End-to-End Suite', () => {
     await expect(page.getByText('bad URL: scheme must be https')).toBeVisible();
   });
 
-  test('Evidence page loads 39-step matrix, balance snapshots, and superseded notice', async ({ page }) => {
+  test('Evidence page loads matrix, balance snapshots, and superseded table', async ({ page }) => {
     await page.goto('/evidence');
     await expect(page.locator('h1')).toContainText('Contract Verification & Evidence');
 
@@ -52,22 +52,21 @@ test.describe('Cover Application End-to-End Suite', () => {
     await expect(page.getByText('Conservation of Balance Invariant')).toBeVisible();
 
     // Assert superseded notice is strictly present
-    await expect(
-      page.getByText('Superseded pair: Cover 0x41f8c399e2709333AEAD1F8Ac0B1E5248eC288Bd, CoverGuard 0x85C0F67F1Cd82aBcCfABb289E6c215c78D17b3eF (superseded)')
-    ).toBeVisible();
+    await expect(page.getByText('Superseded Deployments')).toBeVisible();
+    await expect(page.getByText('0x4d12d00d527869a6a6f95358A11589ecf3C347e3')).toBeVisible();
   });
 
   test('Limits page displays contract operational bounds', async ({ page }) => {
     await page.goto('/limits');
     await expect(page.locator('h1')).toContainText('Operational Limits & Boundaries');
     await expect(page.getByText('Financial Bounds')).toBeVisible();
-    await expect(page.getByText('Policy Duration')).toBeVisible();
+    await expect(page.getByText('Coverage Term & Thresholds')).toBeVisible();
   });
 
   test('CoverGuard page allows address query and gate inspection', async ({ page }) => {
     await page.goto('/guard');
-    await expect(page.locator('h1')).toContainText('CoverGuard Verification');
-    await expect(page.getByPlaceholder('0x...')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('CoverGuard V2 Gatekeeper');
+    await expect(page.getByPlaceholder('e.g. 1')).toBeVisible();
   });
 
   test('Axe accessibility scan passes on Landing Page with 0 critical or serious violations', async ({ page }) => {

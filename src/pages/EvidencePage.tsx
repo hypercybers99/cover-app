@@ -154,10 +154,10 @@ export const EvidencePage: React.FC = () => {
                         href={sup.explorerUrlCover}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1"
+                        className="text-primary hover:underline flex items-center gap-1 break-all"
                       >
-                        <span>{sup.cover.slice(0, 10)}...{sup.cover.slice(-6)}</span>
-                        <ExternalLink className="w-2.5 h-2.5" />
+                        <span>{sup.cover}</span>
+                        <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                       </a>
                     </td>
                     <td className="p-2.5">
@@ -165,10 +165,10 @@ export const EvidencePage: React.FC = () => {
                         href={sup.explorerUrlGuard}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1"
+                        className="text-primary hover:underline flex items-center gap-1 break-all"
                       >
-                        <span>{sup.coverGuard.slice(0, 10)}...{sup.coverGuard.slice(-6)}</span>
-                        <ExternalLink className="w-2.5 h-2.5" />
+                        <span>{sup.coverGuard}</span>
+                        <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                       </a>
                     </td>
                     <td className="p-2.5">
