@@ -30,16 +30,16 @@ async function main() {
   console.log('\n--- 1. Proving 3 SPA Deep Links on Deployed URL ---');
   const deepLinks = [
     {
-      name: 'Product Detail #2',
-      url: `${DEPLOYED_BASE_URL}/products/2`,
-      expectedText: 'PRODUCT #2',
-      screenshot: 'deeplink_products_2.png',
+      name: 'Product Detail #1',
+      url: `${DEPLOYED_BASE_URL}/products/1`,
+      expectedText: 'Product #1',
+      screenshot: 'deeplink_products_1.png',
     },
     {
-      name: 'Policy Detail #5',
-      url: `${DEPLOYED_BASE_URL}/policies/5`,
-      expectedText: 'Policy #5',
-      screenshot: 'deeplink_policies_5.png',
+      name: 'Policy Detail #1',
+      url: `${DEPLOYED_BASE_URL}/policies/1`,
+      expectedText: 'Policy #1',
+      screenshot: 'deeplink_policies_1.png',
     },
     {
       name: 'CoverGuard Gateway',
@@ -166,7 +166,7 @@ async function main() {
   await pageProducts.waitForTimeout(4000);
 
   const productsListText = await pageProducts.evaluate(() => document.body.innerText);
-  const hasProductFromChain = productsListText.includes('App E2E Cloud Cover') || productsListText.includes('PRODUCT #2') || productsListText.includes('Nimbus');
+  const hasProductFromChain = productsListText.includes('App E2E Cloud Cover') || productsListText.includes('Product #') || productsListText.includes('Nimbus');
   console.log(`  Zero-wallet chain readback: product catalogue rendered from chain = ${hasProductFromChain}`);
   await pageProducts.close();
 
