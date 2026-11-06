@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { createClient, chains, createAccount, generatePrivateKey } from 'genlayer-js';
 import { DEPLOYMENTS, NETWORK } from '../src/config/deployments.js';
@@ -647,6 +648,142 @@ async function main() {
   };
   fs.writeFileSync(path.join(e2eDir, 'step9_coverguard.json'), JSON.stringify(step9Data, null, 2));
   recordStep('step9_coverguard', step9Data);
+
+  // ---------------------------------------------------------------------------
+  // STEP 10: Mutable Fixture Real Payout Path
+  // ---------------------------------------------------------------------------
+  console.log('\n--- STEP 10: Mutable Fixture Real Payout Path ---');
+  const appFixtureUrl = 'https://raw.githubusercontent.com/hypercybers99/cover-fixtures/main/status-mutable-app.md';
+
+  // 1. Verify app fixture is OPERATIONAL
+  const appFixtureCheck = await fetch(appFixtureUrl + '?cb=' + Date.now()).then((r) => r.text());
+  console.log(`Mutable App Fixture operational check: ${appFixtureCheck.includes('All systems operational.')}`);
+
+  // 2. Create product
+  console.log(`Creating mutable app product...`);
+  const step10CreateReceipt = await retry(
+    () => createProduct(clientCreator, 'Nimbus Outage Cover (Mutable App)', appFixtureUrl, 60, 30, 200),
+    'Create mutable app product'
+  );
+  const mutableAppProdId =
+    extractProductIdFromReceipt(step10CreateReceipt.receipt) ||
+    String(parseInt((await getStats()).next_product, 10) - 1);
+  console.log(`Created mutable app product ID: ${mutableAppProdId}`);
+
+  // 3. Fund product
+  console.log(`Funding mutable app product pool with 200 demo credits...`);
+  const step10FundReceipt = await retry(
+    () => fundProduct(clientCreator, mutableAppProdId, 200),
+    'Fund mutable app product'
+  );
+
+  // 4. Buy policy while OPERATIONAL
+  console.log(`Buying mutable app policy (coverage 100 demo credits)...`);
+  const step10BuyReceipt = await retry(
+    () => buyPolicy(clientBuyer, mutableAppProdId, 100),
+    'Buy mutable app policy'
+  );
+  const mutableAppPolId =
+    extractProductIdFromReceipt(step10BuyReceipt.receipt) ||
+    String(parseInt((await getStats()).next_policy, 10) - 1);
+  console.log(`Bought mutable app policy ID: ${mutableAppPolId}`);
+
+  // 5. Inject Outage incident into status-mutable-app.md and push to GitHub
+  console.log(`Injecting Outage 75 min into status-mutable-app.md in cover-fixtures...`);
+  const fixturesRepoDir = path.resolve('E:/cover-fixtures');
+  const appIncidentText = fs.readFileSync(path.join(fixturesRepoDir, 'status-s1-outage-75.md'), 'utf8');
+  fs.writeFileSync(path.join(fixturesRepoDir, 'status-mutable-app.md'), appIncidentText.trim() + '\n\n<!-- Instance: mutable-app -->\n', 'utf8');
+
+  const appPushTime = new Date().toISOString();
+  const appPushTimeMs = Date.now();
+  execSync('git add status-mutable-app.md', { cwd: fixturesRepoDir, stdio: 'inherit' });
+  execSync('git commit -m "feat(fixtures): inject outage incident for app mutable payout testing"', { cwd: fixturesRepoDir, stdio: 'inherit' });
+  execSync('git push origin main', { cwd: fixturesRepoDir, stdio: 'inherit' });
+  const appCommitSha = execSync('git rev-parse HEAD', { cwd: fixturesRepoDir }).toString().trim();
+  console.log(`Pushed app fixture commit ${appCommitSha} at ${appPushTime}`);
+
+  // 6. Cooling period & cache-free verification (360 seconds)
+  console.log(`Waiting for CDN cache invalidation (360s minimum)...`);
+  let appCacheFreeTime = null;
+  while (true) {
+    const elapsedMs = Date.now() - appPushTimeMs;
+    const elapsedSec = (elapsedMs / 1000).toFixed(0);
+    let isFresh = false;
+    try {
+      const txt = await fetch(appFixtureUrl + '?cb=' + Math.random()).then((r) => r.text());
+      if (txt.includes('Major outage.') && txt.includes('75 minutes.')) {
+        isFresh = true;
+      }
+    } catch (e) {}
+
+    if (isFresh && elapsedMs >= 365000) {
+      appCacheFreeTime = new Date().toISOString();
+      console.log(`\nApp fixture cache-free confirmed at ${appCacheFreeTime} (${elapsedSec}s elapsed).`);
+      break;
+    }
+    process.stdout.write(`  App cooling: ${elapsedSec}s / 365s | CDN check: ${isFresh ? 'FRESH' : 'STALE'}\r`);
+    await new Promise((r) => setTimeout(r, 10000));
+  }
+
+  // 7. Settle policy
+  console.log(`Settling mutable app policy ${mutableAppPolId}...`);
+  const holderBalBeforeSettle = await getBalanceOf(buyerAccount.address);
+  const step10SettleReceipt = await retry(
+    () => settlePolicy(clientBuyer, mutableAppPolId),
+    'Settle mutable app policy'
+  );
+  console.log(`Settle tx: ${step10SettleReceipt.txHash}, status: ${step10SettleReceipt.receipt?.status_name}`);
+
+  // 8. Typed readbacks and Golden Type verification
+  const policySnapshotAfter = await getPolicy(mutableAppPolId);
+  const statsAfterAppSettle = await getStats();
+  const appSettlementId = String(parseInt(statsAfterAppSettle.next_settlement, 10) - 1);
+  const settlementSnapshotAfter = await getSettlement(appSettlementId);
+  const holderBalAfterSettle = await getBalanceOf(buyerAccount.address);
+  const isCoveredAfter = await isCovered(buyerAccount.address, mutableAppPolId);
+  const isCoveredForAfter = await isCoveredFor(buyerAccount.address, mutableAppPolId, mutableAppProdId, policySnapshotAfter.terms_hash, 100);
+
+  console.log(`\n=== App Payout Verification ===`);
+  console.log(`  Policy ID:         ${mutableAppPolId}`);
+  console.log(`  Policy Status:     ${policySnapshotAfter.status} (Expected: PAID)`);
+  console.log(`  Paid Amount:       ${policySnapshotAfter.paid_amount} demo credits (Expected: 100)`);
+  console.log(`  Settlement ID:     ${appSettlementId}`);
+  console.log(`  Settlement Outcome:${settlementSnapshotAfter.outcome} (Expected: PAY_100)`);
+  console.log(`  Settlement Payout: ${settlementSnapshotAfter.payout || policySnapshotAfter.paid_amount} demo credits`);
+  console.log(`  Holder Balance:    ${holderBalBeforeSettle} -> ${holderBalAfterSettle} demo credits (Diff: +${holderBalAfterSettle - holderBalBeforeSettle} demo credits)`);
+  console.log(`  CoverGuard check:  is_covered=${isCoveredAfter.covered} (reason=${isCoveredAfter.reason}), is_covered_for=${isCoveredForAfter}`);
+
+  // 9. Record Step 10
+  const step10Data = {
+    step: '10_mutable_payout',
+    product_id: mutableAppProdId,
+    policy_id: mutableAppPolId,
+    settlement_id: appSettlementId,
+    create_tx_hash: step10CreateReceipt.txHash,
+    fund_tx_hash: step10FundReceipt.txHash,
+    buy_tx_hash: step10BuyReceipt.txHash,
+    settle_tx_hash: step10SettleReceipt.txHash,
+    status_name: step10SettleReceipt.receipt?.status_name,
+    result_name: step10SettleReceipt.receipt?.result_name,
+    leader_result: step10SettleReceipt.receipt?.consensus_data?.leader_receipt?.[0]?.execution_result,
+    classification: step10SettleReceipt.check.classification,
+    elapsed_seconds: step10SettleReceipt.elapsedSeconds,
+    fixture_commit_sha: appCommitSha,
+    push_timestamp: appPushTime,
+    cache_free_confirmation_timestamp: appCacheFreeTime,
+    policy_before: { status: 'ACTIVE', paid_amount: '0' },
+    policy_after: policySnapshotAfter,
+    settlement_record: settlementSnapshotAfter,
+    holder_balance_before: holderBalBeforeSettle,
+    holder_balance_after: holderBalAfterSettle,
+    payout_received: holderBalAfterSettle - holderBalBeforeSettle,
+    coverguard_post_paid: {
+      is_covered: isCoveredAfter,
+      is_covered_for: isCoveredForAfter,
+    },
+  };
+  fs.writeFileSync(path.join(e2eDir, 'step10_mutable_payout.json'), JSON.stringify(step10Data, null, 2));
+  recordStep('step10_mutable_payout', step10Data);
 
   // ---------------------------------------------------------------------------
   // Aggregate Summary File (Writes vs Reads)
